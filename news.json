@@ -1,6 +1,27 @@
 {
-  "lastChecked": "2026-10-22T18:20:00Z",
+  "lastChecked": "2026-10-22T19:00:00Z",
   "items": [
+    {
+      "headline": "Chrome confirms it blocked the keys by SPKI hash and found no CT-logged certificates from these CAs",
+      "source": "Google / Chrome Root Program",
+      "url": "https://blog.google/security/protecting-chrome-and-android-users-from-compromised-emudhra-intermediate-ca-certificates/",
+      "publishedAt": "2026-10-20",
+      "addedAt": "2026-10-22T19:00:00Z"
+    },
+    {
+      "headline": "Bun 1.4.4 ships the trust-store fix",
+      "source": "Bun (via the disclosure site’s patch tracker)",
+      "url": "https://bun.com/blog/bun-v1.4.4",
+      "publishedAt": "2026-10-22",
+      "addedAt": "2026-10-22T19:00:00Z"
+    },
+    {
+      "headline": "Two new test hosts with never-logged leaves separate trust-store results from CT enforcement",
+      "source": "emudhra.we-have-a-problem.com",
+      "url": "https://github.com/galadran/we-have-a-problem.com",
+      "publishedAt": "2026-10-22",
+      "addedAt": "2026-10-22T19:00:00Z"
+    },
     {
       "headline": "All eight keys turn out to be integers below 256, recoverable from the public certificates in under a second",
       "source": "Help Net Security",
