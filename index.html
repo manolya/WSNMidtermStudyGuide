@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Lecture on the October 2026 eMudhra intermediate CA key compromise: key recovery from the real certificates, a trust-path explorer, a diagnostic lab, an incident-response simulator and a live news wire.">
+<meta name="description" content="Beginner-friendly lecture on the October 2026 eMudhra intermediate CA key compromise: key recovery from the real certificates, a trust-path explorer, a diagnostic lab, an incident-response simulator and a live news wire.">
 <title>The eMudhra Key Compromise</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -94,6 +94,33 @@ button{font:inherit}
 .wire-empty{display:block!important;color:var(--muted);font-size:15px}
 .wire-src{padding:8px 14px;border-top:2px solid var(--ink);background:var(--bg2);font-family:var(--f-mono);font-size:18px;line-height:1.2;color:var(--muted)}
 @media (max-width:520px){.wire-list li{grid-template-columns:1fr}}
+
+/* plain-language layer */
+.plain{border:2px dashed var(--lav);background:var(--bg2);padding:14px 18px;display:flex;flex-direction:column;gap:6px;border-radius:4px}
+.plain .tag{font-family:var(--f-display);font-size:11px;letter-spacing:.12em;color:var(--lav)}
+.plain p{font-size:16.5px}
+body.tech .plain{display:none}
+.term{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:help;text-decoration:underline dotted var(--lav);text-decoration-thickness:2px;text-underline-offset:4px}
+.term:hover,.term[aria-expanded="true"]{color:var(--pink)}
+#gloss-pop{position:absolute;z-index:20;max-width:min(320px,calc(100vw - 32px));background:var(--panel);color:var(--ink);border:3px solid var(--ink);box-shadow:5px 5px 0 var(--pinkfill);padding:10px 14px;font-size:15px;line-height:1.5}
+#gloss-pop b{display:block;font-family:var(--f-display);font-size:11px;letter-spacing:.1em;color:var(--pink);font-weight:400;margin-bottom:2px}
+.mode{display:flex;align-items:center;gap:10px;margin-top:18px;flex-wrap:wrap}
+.switch{display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:15px;background:none;border:2px solid var(--ink);padding:6px 12px 6px 6px;border-radius:999px;color:var(--ink);cursor:pointer}
+.switch .knob{width:38px;height:22px;border-radius:999px;background:var(--line);position:relative;flex:none}
+.switch .knob::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--ink);transition:transform .15s}
+.switch[aria-pressed="true"] .knob{background:var(--pinkfill)}
+.switch[aria-pressed="true"] .knob::after{transform:translateX(16px)}
+.story{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;list-style:none;padding:0!important;margin:0}
+.story li{border:2px solid var(--ink);background:var(--panel);padding:14px 16px;display:flex;flex-direction:column;gap:6px;max-width:none}
+.story li::marker{content:none}
+.story .num{font-family:var(--f-display);font-size:22px;color:var(--pink);line-height:1}
+.story h3{margin:0;font-size:17px}
+.story p{font-size:15.5px}
+.cast{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 14px;border:2px solid var(--line);background:var(--panel);padding:14px 16px;font-size:15.5px}
+.cast dt{font-weight:800} .cast dd{margin:0;color:var(--muted)}
+.gl{display:grid;grid-template-columns:minmax(150px,auto) minmax(0,1fr);gap:8px 18px;margin:12px 0 0;font-size:15.5px}
+.gl dt{font-weight:800} .gl dd{margin:0;color:var(--muted)}
+@media (max-width:520px){.gl,.cast{grid-template-columns:1fr}.gl dd,.cast dd{margin-bottom:6px}}
 
 /* contents */
 .toc{padding-block:36px 8px}
@@ -312,6 +339,7 @@ details p{margin-top:8px;color:var(--muted)}
 <nav class="wrap toc" aria-label="Episodes">
   <div class="eyebrow">Tonight’s episodes</div>
   <ol>
+    <li><a href="#ep0"><span>00</span>The two-minute version</a></li>
     <li><a href="#ep1"><span>01</span>Trust paths you can break</a></li>
     <li><a href="#ep2"><span>02</span>What happened, hour by hour</a></li>
     <li><a href="#ep3"><span>03</span>The weak keys, from the real certificates</a></li>
@@ -321,7 +349,12 @@ details p{margin-top:8px;color:var(--muted)}
     <li><a href="#ep7"><span>07</span>Lab: why did it fail?</a></li>
     <li><a href="#ep8"><span>08</span>Lessons and discussion</a></li>
     <li><a href="#ep9"><span>09</span>You’re the root program</a></li>
+    <li><a href="#glossary"><span>✦</span>Glossary</a></li>
   </ol>
+  <div class="mode">
+    <button class="switch" type="button" id="plain-toggle" aria-pressed="true"><span class="knob" aria-hidden="true"></span>Plain-language notes</button>
+    <span class="note">New to security? Start with Episode 00, and tap any <span class="term" style="cursor:default">underlined term</span> for a definition.</span>
+  </div>
   <div class="legend" aria-label="Evidence labels">
     <span class="item"><span class="ev ok">Confirmed</span> verified from the certificates, root programs or public records</span>
     <span class="item"><span class="ev ca">CA-reported</span> eMudhra’s own account, not independently verified</span>
@@ -329,9 +362,42 @@ details p{margin-top:8px;color:var(--muted)}
   </div>
 </nav>
 
+<!-- EP 0 -->
+<section class="wrap ep" id="ep0">
+  <div class="ep-head"><div class="eyebrow">Episode 00 · Start here</div><h2>The two-minute version</h2></div>
+  <p>No security background needed. Think of the internet’s padlock icon as an ID check.</p>
+  <ol class="story">
+    <li><span class="num">1</span><h3>Websites carry ID cards</h3><p>When you visit your bank, its website shows your device a digital ID card, called a certificate, saying “I really am yourbank.com”.</p></li>
+    <li><span class="num">2</span><h3>Only trusted offices issue them</h3><p>Your phone and computer come with a short list of trusted ID offices. Big offices delegate the daily work to branch offices, and an ID from any branch counts.</p></li>
+    <li><span class="num">3</span><h3>Every office has a secret stamp</h3><p>Offices sign IDs with a secret stamp, a private key. A good stamp is a number so huge that nobody could guess it in billions of years.</p></li>
+    <li><span class="num">4</span><h3>Eight stamps were guessable</h3><p>eMudhra, an Indian ID office, made eight branch stamps that were each just a number between 1 and 255. Anyone could find them in under a second.</p></li>
+    <li><span class="num">5</span><h3>So fake IDs were possible</h3><p>With a copied stamp, a criminal could make a convincing fake ID for any website, and devices that still trusted those branches would believe it.</p></li>
+    <li><span class="num">6</span><h3>Browsers reacted in hours, other software is slower</h3><p>Chrome, Firefox, Apple and Microsoft were told to reject the stamps within days. Many apps, servers and smart devices only learn about it when someone installs an update.</p></li>
+  </ol>
+  <div class="plain">
+    <div class="tag">★ What should I do?</div>
+    <p><b>Everyone:</b> install the latest updates for your browser, phone and computer. That’s enough for everyday browsing.</p>
+    <p><b>If you run servers, write software or manage devices:</b> Episodes 6 and 7 show how to check whether your systems still trust the bad stamps.</p>
+  </div>
+  <h3>Who’s who</h3>
+  <dl class="cast">
+    <dt>eMudhra</dt><dd>The certificate authority (ID office) that made the weak keys.</dd>
+    <dt>Sectigo</dt><dd>Another certificate authority that had also vouched for the same eight branch offices, giving them a second route to trust.</dd>
+    <dt>Mozilla, Google, Apple, Microsoft</dt><dd>They run the “root programs”: the lists of ID offices that Firefox, Chrome, Apple devices and Windows trust.</dd>
+    <dt>“Wayne”</dt><dd>The independent researcher who found the problem and reported it on 17 October 2026.</dd>
+  </dl>
+</section>
+
+<div class="divider" aria-hidden="true">
+  <svg viewBox="0 0 20 20" fill="var(--pink)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <svg viewBox="0 0 20 20" fill="var(--gold)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <svg viewBox="0 0 20 20" fill="var(--cyan)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+</div>
+
 <!-- EP 1 -->
 <section class="wrap ep" id="ep1">
   <div class="ep-head"><div class="eyebrow">Episode 01</div><h2>Trust paths you can break</h2></div>
+  <div class="plain"><div class="tag">★ In plain words</div><p>Your device accepts an ID if it can trace a route from it back to an office on its trusted list. This tool shows every route a fake ID could take. Try switching things off: closing one route often isn’t enough, because two different offices vouched for the same stamps.</p></div>
   <p>A TLS client trusts a server certificate only if it can build a chain from that certificate up to a <b>root</b> in its trust store. Roots sign <b>intermediate CAs</b>, intermediates sign the leaf certificates that sites present, and every intermediate inherits its root’s trust for any domain unless a constraint says otherwise. Guess an intermediate’s private key and you can mint a certificate for <code>yourbank.com</code> that chains to a trusted root.</p>
   <p>Here the same eight weak keys sit in <b>two</b> certificates each: one issued by eMudhra’s emSign Root TLS (or CS) CA – G3, one cross-signed by Sectigo’s AAA Certificate Services. emSign Root TLS CA – G3 is a root on Windows and is itself cross-signed by emSign ECC Root CA – G3 everywhere else. That gives a forged leaf up to three ways home. <span class="ev ok">Confirmed</span> <span class="note">from the certificates and chains published with the disclosure</span></p>
 
@@ -397,6 +463,7 @@ details p{margin-top:8px;color:var(--muted)}
 <!-- EP 2 -->
 <section class="wrap ep" id="ep2">
   <div class="ep-head"><div class="eyebrow">Episode 02</div><h2>What happened, hour by hour</h2></div>
+  <div class="plain"><div class="tag">★ In plain words</div><p>The researcher reported the problem on a Saturday evening, and browsers were blocking the bad stamps within hours. The flawed stamps had existed, unnoticed, for about 17 months before that.</p></div>
   <ol class="tl">
     <li><time>2025-04-30 · 15:35–16:38 UTC</time>The eight intermediates are issued (their notBefore times). Mozilla’s incident report places them in a batch of 24 generated that day. <span class="ev ok">Confirmed</span></li>
     <li><time>2025-05-14</time>Sectigo cross-signs all eight keys under AAA Certificate Services. <span class="ev ok">Confirmed</span></li>
@@ -427,6 +494,7 @@ details p{margin-top:8px;color:var(--muted)}
 <!-- EP 3 -->
 <section class="wrap ep" id="ep3">
   <div class="ep-head"><div class="eyebrow">Episode 03</div><h2>The weak keys, from the real certificates</h2></div>
+  <div class="plain"><div class="tag">★ In plain words</div><p>A secret key should be a number so large it can’t be guessed, with more possibilities than there are atoms in the universe. These keys were numbers from 1 to 255. The console below takes the real certificates and simply tries 1, 2, 3… until it finds each key, in a fraction of a second.</p></div>
   <p>These are ECDSA keys on the NIST P-384 curve. The private key is a scalar <code>d</code>, and the public key in the certificate is the point <code>Q = d·G</code>, where <code>G</code> is the curve’s fixed generator. Security rests on <code>d</code> being a uniformly random number of about 384 bits. Each of these eight keys is an integer below 256, so the <b>private-key search space is at most 255 candidates</b>: compute <code>G, 2G, 3G, …</code> until a point equals <code>Q</code>. How much entropy the generation process actually had is a separate question that the values alone don’t answer.</p>
   <div class="tbl">
     <table>
@@ -484,6 +552,7 @@ details p{margin-top:8px;color:var(--muted)}
 <!-- EP 4 -->
 <section class="wrap ep" id="ep4">
   <div class="ep-head"><div class="eyebrow">Episode 04</div><h2>How a ceremony goes wrong</h2></div>
+  <div class="plain"><div class="tag">★ In plain words</div><p>Keys are made in a formal, witnessed procedure. According to eMudhra, a faulty script created extra, weak keys with similar names, and staff picked the wrong ones. A warning sign appeared a year earlier but was treated as a minor slip.</p></div>
   <p>A key ceremony is the scripted, witnessed, audited procedure in which a CA generates keys inside a hardware security module (HSM) and produces certificate signing requests. eMudhra’s preliminary account in Mozilla bug 2083449 describes this chain of failures. <span class="ev ca">CA-reported</span></p>
   <ol>
     <li><b>A faulty ceremony script</b> created a second, weak key pair on the HSM alongside each properly generated one.</li>
@@ -508,6 +577,7 @@ details p{margin-top:8px;color:var(--muted)}
 <!-- EP 5 -->
 <section class="wrap ep" id="ep5">
   <div class="ep-head"><div class="eyebrow">Episode 05</div><h2>Blast radius</h2></div>
+  <div class="plain"><div class="tag">★ In plain words</div><p>A copied stamp could be used to impersonate any website, to fake logins to some company systems, or to make malicious software look like it came from a trusted publisher. There’s no evidence anyone did, but it can’t be completely ruled out.</p></div>
   <p>This is unusual among CA compromises. Normally someone steals a key, and you can reason about when it happened and who has it. Here nobody had to steal anything: the key was derivable from the public certificate from the day it was issued. Treat all eight keys as known to every attacker.</p>
   <div class="grid2">
     <div class="layer"><h3>TLS impersonation</h3><p>Six keys can sign a server certificate for any domain. An on-path attacker can intercept or modify HTTPS traffic for any client that accepts the chain.</p></div>
@@ -530,6 +600,7 @@ details p{margin-top:8px;color:var(--muted)}
 <!-- EP 6 -->
 <section class="wrap ep" id="ep6">
   <div class="ep-head"><div class="eyebrow">Episode 06</div><h2>Browsers vs. everything else</h2></div>
+  <div class="plain"><div class="tag">★ In plain words</div><p>Browsers have a fast lane for “don’t trust this” news and got it within hours. Most other software, from server tools to smart devices, has no fast lane and stays exposed until someone installs an update.</p></div>
   <p>A browser rejecting one of these certificates now does so several ways at once. Most other TLS stacks have none of these defenses and rely on a static root bundle. You can reproduce each case in the <a href="#tx">trust path explorer</a>.</p>
   <div class="grid2">
     <div class="layer"><div class="who">Firefox · OneCRL / CRLite</div><h3>Pushed intermediate blocklist</h3><p>Delivered through remote settings, no update or restart. Firefox 158.0.1 and the ESRs carry it for installs that disable remote settings.</p></div>
@@ -576,6 +647,7 @@ details p{margin-top:8px;color:var(--muted)}
 <!-- EP 7 -->
 <section class="wrap ep" id="ep7">
   <div class="ep-head"><div class="eyebrow">Episode 07</div><h2>Lab: why did it fail?</h2></div>
+  <div class="plain"><div class="tag">★ In plain words</div><p>Hands-on checks for people who run computers or servers. The main lesson: an error message isn’t automatically good news. What matters is why the connection failed.</p></div>
   <p>The disclosure site runs test hosts that serve chains through the compromised intermediates. A failed connection is not automatically good news: it only helps if it failed <b>for the right reason</b>. A corporate proxy, an expired test certificate or a DNS problem all look like “error” too.</p>
 
   <h3>Task 1 · Probe four hosts, read the pattern</h3>
@@ -657,6 +729,7 @@ else:
 <!-- EP 8 -->
 <section class="wrap ep" id="ep8">
   <div class="ep-head"><div class="eyebrow">Episode 08</div><h2>Lessons and discussion</h2></div>
+  <div class="plain"><div class="tag">★ In plain words</div><p>The takeaways: double-check keys when they’re created, and make sure every system that relies on certificates can be updated quickly when something goes wrong.</p></div>
   <h3>For anyone who runs keys</h3>
   <ul>
     <li><b>Pairwise consistency, every time.</b> Before publishing a certificate, sign a test value with the exact HSM key handle you will use and verify it with the certificate’s public key.</li>
@@ -690,6 +763,7 @@ else:
 <!-- EP 9 -->
 <section class="wrap ep" id="ep9">
   <div class="ep-head"><div class="eyebrow">Episode 09</div><h2>You’re the root program</h2></div>
+  <div class="plain"><div class="tag">★ In plain words</div><p>A short game. You decide how to respond to the incident and see who stays exposed. You’ll find that no single fix protects everyone.</p></div>
   <p>Saturday, 18:05 UTC. You are a root-program security engineer. A report says eight intermediate private keys are recoverable from their public certificates. Pick your responses, in any order. Each one covers part of the problem; watch which populations stay exposed.</p>
   <div class="tool">
     <div class="tool-bar"><i></i><i></i><i></i>&nbsp;INCIDENT RESPONSE · T+<span id="sim-clock">0 h</span></div>
@@ -702,6 +776,11 @@ else:
     </div>
   </div>
   <p class="note">The populations and effects are simplified for teaching, but each effect follows a mechanism described in the episodes above.</p>
+</section>
+
+<section class="wrap ep" id="glossary">
+  <div class="ep-head"><div class="eyebrow">Reference</div><h2>Glossary</h2></div>
+  <dl class="gl" id="gl"></dl>
 </section>
 
 <section class="wrap sources" aria-labelledby="src-h">
@@ -1164,6 +1243,83 @@ const hx = (v, len) => v.toString(16).padStart(len*2, "0");
   load();
   setInterval(load, 5 * 60 * 1000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+})();
+
+/* ===== plain-language layer: glossary terms + toggle ===== */
+(function(){
+  const G = [
+    ["ca", "Certificate authority (CA)", "An organization trusted to issue certificates, like a passport office for websites.", /certificate authorit(?:y|ies)|\bCAs?\b/],
+    ["cert", "Certificate", "A website’s digital ID card. It says who the site is and is signed by a certificate authority.", /\bcertificates?\b(?! Services)/i],
+    ["root", "Root", "A top-level certificate authority that devices trust out of the box. Each device or app ships with a list of them.", /\broots?\b(?! cause)(?! (?:CA|TLS|CS)\b)/i],
+    ["int", "Intermediate CA", "A “branch office” certificate authority. A root vouches for it, and it issues certificates to websites.", /\bintermediates?\b/i],
+    ["store", "Trust store", "The list of root certificate authorities a device or program trusts. Browsers, phones, operating systems and many apps each keep their own.", /\btrust stores?\b/i],
+    ["priv", "Private key", "The secret half of a key pair, used to sign. Whoever holds it can sign in the owner’s name, so it must never be guessable.", /\bprivate keys?\b/i],
+    ["pub", "Public key", "The shareable half of a key pair, printed in the certificate. Anyone can use it to check signatures; it shouldn’t reveal the private key.", /\bpublic keys?\b/i],
+    ["xs", "Cross-sign", "When a second certificate authority also vouches for an intermediate, giving it another route to trust.", /\bcross-sign(?:s|ed)?\b/i],
+    ["rev", "Revocation", "Officially cancelling a certificate before it expires. It only helps if the device actually checks the cancellation list.", /\brevocation\b|\brevoked?\b|\brevokes\b/i],
+    ["crl", "CRL", "Certificate Revocation List: a certificate authority’s published list of cancelled certificates.", /\bCRLs?\b(?!Set)/],
+    ["blk", "OneCRL and CRLSets", "Firefox’s and Chrome’s own block lists, pushed to browsers automatically within hours.", /\bOneCRL\b|\bCRLSets?\b/],
+    ["ct", "Certificate Transparency (CT)", "Public, append-only logs of issued certificates. Browsers refuse certificates that weren’t logged, so secret fakes get noticed.", /Certificate Transparency|\bCT\b/],
+    ["sct", "SCT", "A receipt proving that a certificate was recorded in a Certificate Transparency log.", /\bSCTs?\b/],
+    ["spki", "SPKI", "The public-key part of a certificate. Blocking by SPKI blocks every certificate that uses that key, cross-signs included.", /\bSPKI\b/],
+    ["hsm", "HSM", "Hardware security module: a tamper-resistant device that creates and stores a certificate authority’s private keys.", /\bHSMs?\b/],
+    ["cer", "Key ceremony", "The formal, scripted, witnessed procedure in which a certificate authority creates its keys.", /\bkey ceremony\b|\bceremony\b/i],
+    ["eku", "EKU", "Extended Key Usage: a field saying what a certificate may be used for, such as websites, client logins or signing software.", /\bEKUs?\b/],
+    ["mtls", "Client authentication (mTLS)", "When the person or machine connecting also proves who it is with a certificate, common in company systems and APIs.", /\bmTLS\b|\bclient auth\b/i],
+    ["cs", "Code signing", "Signing software so a computer can tell who published it and that it wasn’t altered.", /\bcode[- ]signing\b/i],
+    ["tls", "TLS / HTTPS", "The encryption behind the padlock in your browser. Certificates are how it knows it’s talking to the real site.", /\bTLS\b|\bHTTPS\b/],
+    ["leaf", "Leaf certificate", "The certificate a website actually presents, at the bottom of the chain.", /\bleaf\b/i],
+    ["curve", "Elliptic curve / P-384", "The family of math used for these keys. P-384 is a standard curve that is very strong when keys are truly random.", /\bP-384\b|\belliptic[- ]curves?\b/i],
+    ["cve", "CVE", "A public ID number for a security problem, used to track fixes.", /\bCVE\b(?!-)/],
+    ["chain", "Chain / trust path", "The links from a website’s certificate up through intermediates to a trusted root.", /\bchains?\b|\btrust paths?\b/i]
+  ];
+  const BY = Object.fromEntries(G.map(g => [g[0], g]));
+  const SKIP = "a,code,pre,button,h1,h2,.ev,.tool,.console,svg,textarea,summary,.tbl,.term,.eyebrow,.cast,#gloss-pop,.gl";
+  document.querySelectorAll("main .ep").forEach(sec => {
+    if (sec.id === "glossary") return;
+    const used = new Set();
+    const walker = document.createTreeWalker(sec, NodeFilter.SHOW_TEXT, {acceptNode: n => n.parentElement && !n.parentElement.closest(SKIP) && n.nodeValue.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT});
+    const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+    for (const node of nodes) {
+      let text = node.nodeValue, frag = null, cursor = 0;
+      const hits = [];
+      for (const [key, , , re] of G) { if (used.has(key)) continue; const m = new RegExp(re.source, re.flags.replace("g", "")).exec(text); if (m) hits.push({key, i: m.index, len: m[0].length, word: m[0]}); }
+      hits.sort((a, b) => a.i - b.i || b.len - a.len);
+      const chosen = []; let end = -1;
+      for (const h of hits) if (h.i >= end && !used.has(h.key)) { chosen.push(h); used.add(h.key); end = h.i + h.len; }
+      if (!chosen.length) continue;
+      frag = document.createDocumentFragment();
+      for (const h of chosen) {
+        frag.append(text.slice(cursor, h.i));
+        const b = document.createElement("button"); b.type = "button"; b.className = "term"; b.dataset.t = h.key; b.textContent = h.word; b.setAttribute("aria-expanded", "false");
+        frag.append(b); cursor = h.i + h.len;
+      }
+      frag.append(text.slice(cursor)); node.replaceWith(frag);
+    }
+  });
+  const pop = document.createElement("div"); pop.id = "gloss-pop"; pop.setAttribute("role", "tooltip"); pop.hidden = true; document.body.appendChild(pop);
+  let open = null, pinned = false;
+  function show(b, pin){
+    const g = BY[b.dataset.t]; if (!g) return;
+    if (open && open !== b) open.setAttribute("aria-expanded", "false");
+    open = b; pinned = !!pin; b.setAttribute("aria-expanded", "true");
+    pop.replaceChildren(); const t = document.createElement("b"); t.textContent = g[1]; pop.append(t, document.createTextNode(g[2])); pop.hidden = false;
+    const r = b.getBoundingClientRect(), w = pop.offsetWidth, vw = document.documentElement.clientWidth;
+    pop.style.top = (r.bottom + window.scrollY + 8) + "px";
+    pop.style.left = Math.max(16, Math.min(r.left + window.scrollX, vw - w - 16 + window.scrollX)) + "px";
+  }
+  function hide(){ if (open) open.setAttribute("aria-expanded", "false"); open = null; pinned = false; pop.hidden = true; }
+  document.addEventListener("click", e => { const b = e.target.closest("button.term"); if (b) { if (open === b && pinned) hide(); else show(b, true); return; } if (!e.target.closest("#gloss-pop")) hide(); });
+  document.addEventListener("mouseover", e => { const b = e.target.closest("button.term"); if (b && !pinned) show(b, false); });
+  document.addEventListener("mouseout", e => { const b = e.target.closest("button.term"); if (b && !pinned && open === b) hide(); });
+  document.addEventListener("focusin", e => { const b = e.target.closest("button.term"); if (b && !pinned) show(b, false); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") hide(); });
+  const gl = document.getElementById("gl");
+  for (const g of G.slice().sort((a, b) => a[1].localeCompare(b[1]))) { const dt = document.createElement("dt"); dt.textContent = g[1]; const dd = document.createElement("dd"); dd.textContent = g[2]; gl.append(dt, dd); }
+  const tog = document.getElementById("plain-toggle");
+  const set = on => { document.body.classList.toggle("tech", !on); tog.setAttribute("aria-pressed", String(on)); try { localStorage.setItem("plainNotes", on ? "1" : "0"); } catch (e) {} };
+  let start = true; try { start = localStorage.getItem("plainNotes") !== "0"; } catch (e) {}
+  set(start); tog.addEventListener("click", () => set(tog.getAttribute("aria-pressed") !== "true"));
 })();
 
 /* ===== copy buttons ===== */
