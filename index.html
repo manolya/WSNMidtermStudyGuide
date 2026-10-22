@@ -1,57 +1,71 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Lecture on the October 2026 eMudhra intermediate CA key compromise: key recovery from the real certificates, a trust-path explorer, a diagnostic lab, an incident-response simulator and a live news wire.">
 <title>The eMudhra Key Compromise</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap">
 <style>
-/* Layout: one reading column of "episodes" under a transformation-sequence hero; CRT console for the live attack; pixel-shadow panels only where something is operated or copied. */
+/* Layout: one reading column of "episodes" under a transformation-sequence hero; CRT consoles for anything operated; pixel-shadow panels only where something is clicked, typed or copied. */
 :root{
   --bg:#FFF0F7; --bg2:#F7E6FF; --panel:#FFFAFD; --ink:#2A1650; --muted:#5E4C82; --line:#D9C4F0;
-  --pink:#C2186B; --pinkfill:#FF8CC6; --lav:#8E6BE8; --cyan:#0A7894; --cyanfill:#9BEAFF; --gold:#F2B705;
-  --sky1:#E6D6FF; --sky2:#FFD3EA; --crt:#1C1042; --crtink:#9BFFD9; --crtdim:#7FA8C9; --bad:#B4123E; --good:#0B7A4E;
+  --pink:#C2186B; --pinkfill:#FF8CC6; --lav:#6F4BD8; --cyan:#0A7894; --cyanfill:#9BEAFF; --gold:#F2B705; --goldink:#7A5600;
+  --sky1:#E6D6FF; --sky2:#FFD3EA; --crt:#1C1042; --crtink:#9BFFD9; --crtdim:#9FB4D9; --bad:#B4123E; --good:#0B7A4E;
   --f-display:"Silkscreen","Courier New",monospace;
   --f-body:"M PLUS Rounded 1c","Trebuchet MS",system-ui,sans-serif;
   --f-mono:"VT323","Courier New",monospace;
+  color-scheme:light;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#140B33; --bg2:#1C1046; --panel:#21144F; --ink:#FBE8F4; --muted:#BBAADF; --line:#3E2D7A;
-  --pink:#FF7BBF; --pinkfill:#E8338A; --lav:#C9B4FF; --cyan:#7FE3FF; --cyanfill:#1F6E8A; --gold:#FFD84D;
-  --sky1:#1A0F45; --sky2:#3A1660; --crt:#0B0624; --crtink:#9BFFD9; --crtdim:#7F8FC9; --bad:#FF6F91; --good:#6BF2B0;
+  --pink:#FF7BBF; --pinkfill:#E8338A; --lav:#C9B4FF; --cyan:#7FE3FF; --cyanfill:#1F6E8A; --gold:#FFD84D; --goldink:#FFD84D;
+  --sky1:#1A0F45; --sky2:#3A1660; --crt:#0B0624; --crtink:#9BFFD9; --crtdim:#8F9FD9; --bad:#FF6F91; --good:#6BF2B0;
   color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#140B33; --bg2:#1C1046; --panel:#21144F; --ink:#FBE8F4; --muted:#BBAADF; --line:#3E2D7A;
-  --pink:#FF7BBF; --pinkfill:#E8338A; --lav:#C9B4FF; --cyan:#7FE3FF; --cyanfill:#1F6E8A; --gold:#FFD84D;
-  --sky1:#1A0F45; --sky2:#3A1660; --crt:#0B0624; --crtink:#9BFFD9; --crtdim:#7F8FC9; --bad:#FF6F91; --good:#6BF2B0;
+  --pink:#FF7BBF; --pinkfill:#E8338A; --lav:#C9B4FF; --cyan:#7FE3FF; --cyanfill:#1F6E8A; --gold:#FFD84D; --goldink:#FFD84D;
+  --sky1:#1A0F45; --sky2:#3A1660; --crt:#0B0624; --crtink:#9BFFD9; --crtdim:#8F9FD9; --bad:#FF6F91; --good:#6BF2B0;
   color-scheme:dark}
 
 *{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.7;overflow-x:hidden}
 a{color:var(--pink);text-underline-offset:3px}
-a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px dashed var(--cyan);outline-offset:3px}
+a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,label:focus-within{outline:3px dashed var(--cyan);outline-offset:3px}
 code,.mono{font-family:var(--f-mono);font-size:1.18em;letter-spacing:.02em}
-p code,li code,td code{background:var(--bg2);padding:0 .3em;border-radius:3px}
+p code,li code,td code{background:var(--bg2);padding:0 .3em;border-radius:3px;word-break:break-word}
 h1,h2,h3{text-wrap:balance;line-height:1.2;margin:0}
 p{margin:0}
-.wrap{max-width:820px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button{font:inherit}
+.wrap{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* evidence labels */
+.ev{display:inline-block;font-family:var(--f-display);font-size:10.5px;letter-spacing:.08em;line-height:1;padding:4px 7px 3px;border:1.5px solid currentColor;border-radius:3px;vertical-align:2px;white-space:nowrap;text-transform:uppercase}
+.ev.ok{color:var(--cyan)} .ev.ca{color:var(--lav)} .ev.open{color:var(--goldink);border-style:dashed}
+.legend{display:flex;flex-wrap:wrap;gap:10px 22px;font-size:14.5px;color:var(--muted);margin-top:16px}
+.legend span.item{display:flex;gap:8px;align-items:center}
 
 /* hero */
 .hero{position:relative;overflow:hidden;background:linear-gradient(170deg,var(--sky1) 0%,var(--sky2) 100%);border-bottom:4px solid var(--ink)}
 .hero .wrap{position:relative;padding-block:56px 44px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center}
 .eyebrow{font-family:var(--f-display);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--pink)}
-.hero h1{font-family:var(--f-display);font-weight:700;font-size:clamp(44px,9vw,92px);line-height:.95;letter-spacing:.01em;margin:14px 0 18px;
-  text-shadow:3px 0 0 var(--pinkfill),-3px 0 0 var(--cyanfill)}
-.hero .lede{font-size:clamp(17px,2.2vw,20px);max-width:34ch;color:var(--ink)}
+.hero h1{font-family:var(--f-display);font-weight:700;font-size:clamp(44px,9vw,92px);line-height:.95;letter-spacing:.01em;margin:14px 0 18px;text-shadow:3px 0 0 var(--pinkfill),-3px 0 0 var(--cyanfill)}
+.hero .lede{font-size:clamp(17px,2.2vw,20px);max-width:36ch}
 .hero .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
 .chip{font-family:var(--f-mono);font-size:20px;line-height:1;padding:6px 10px 7px;border:2px solid var(--ink);background:var(--panel);color:var(--ink);border-radius:999px}
-.chip.hot{background:var(--pinkfill);color:#2A1650;border-color:var(--ink)}
+.chip.hot{background:var(--pinkfill);color:#2A1650}
+.chip small{font-size:16px;color:var(--muted)}
 .moon{width:min(220px,30vw);height:auto;max-width:100%}
 .sparkle{position:absolute;fill:var(--gold);animation:tw 2.6s ease-in-out infinite}
 .sparkle.c{fill:var(--cyan)} .sparkle.p{fill:var(--pink)}
 @keyframes tw{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
 
 .ticker{background:var(--ink);color:var(--bg);overflow:hidden;white-space:nowrap;border-bottom:4px solid var(--pinkfill)}
-.ticker span{display:inline-block;padding:8px 0;font-family:var(--f-display);font-size:13px;letter-spacing:.12em;animation:scroll 38s linear infinite}
+.ticker span{display:inline-block;padding:8px 0;font-family:var(--f-display);font-size:13px;letter-spacing:.12em;animation:scroll 60s linear infinite}
 @keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
 /* live wire */
@@ -60,25 +74,30 @@ p{margin:0}
 .wire-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 16px;padding:10px 14px;border-bottom:2px solid var(--ink);background:var(--bg2)}
 .wire-head h2{font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:.14em;display:flex;align-items:center;gap:10px}
 .dot{width:11px;height:11px;border-radius:50%;background:var(--muted);flex:none}
-.dot.on{background:var(--pinkfill);box-shadow:0 0 0 0 var(--pinkfill)}
+.dot.on{background:var(--pinkfill)}
 @media (prefers-reduced-motion:no-preference){.dot.on{animation:pulse 1.8s ease-out infinite}}
 @keyframes pulse{0%{box-shadow:0 0 0 0 var(--pinkfill)}100%{box-shadow:0 0 0 10px transparent}}
 .wire-status{font-family:var(--f-mono);font-size:19px;line-height:1.2;color:var(--muted)}
+.bz{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;padding:10px 14px;border-bottom:2px dashed var(--line);font-size:14.5px}
+.bz b{font-family:var(--f-display);font-size:11px;letter-spacing:.1em;color:var(--pink);font-weight:400}
+.bz .mono{font-size:19px;line-height:1.2}
 .wire-list{list-style:none;margin:0;padding:0}
 .wire-list li{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;padding:10px 14px;border-bottom:1px dotted var(--line);align-items:baseline}
 .wire-list li:last-child{border-bottom:none}
 .wire-list time{font-family:var(--f-mono);font-size:20px;line-height:1.2;color:var(--pink);white-space:nowrap;font-variant-numeric:tabular-nums}
 .wire-list .w-body{min-width:0;display:flex;flex-direction:column;gap:2px}
-.wire-list a{color:var(--ink);font-weight:700;text-decoration:none;line-height:1.4}
+.wire-list a{color:var(--ink);font-weight:700;text-decoration:none;line-height:1.4;overflow-wrap:anywhere}
 .wire-list a:hover{color:var(--pink);text-decoration:underline}
 .wire-list .w-src{font-size:13.5px;color:var(--muted)}
+.wire-list .w-src a{font-weight:400;color:var(--muted);text-decoration:underline}
 .wire-list .new{font-family:var(--f-display);font-size:10px;letter-spacing:.1em;background:var(--gold);color:#2A1650;padding:1px 6px;margin-left:6px;vertical-align:2px}
 .wire-empty{display:block!important;color:var(--muted);font-size:15px}
+.wire-src{padding:8px 14px;border-top:2px solid var(--ink);background:var(--bg2);font-family:var(--f-mono);font-size:18px;line-height:1.2;color:var(--muted)}
 @media (max-width:520px){.wire-list li{grid-template-columns:1fr}}
 
 /* contents */
 .toc{padding-block:36px 8px}
-.toc ol{list-style:none;padding:0;margin:14px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px 20px}
+.toc ol{list-style:none;padding:0;margin:14px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px 20px}
 .toc a{display:flex;gap:10px;text-decoration:none;color:var(--ink);padding:4px 0;border-bottom:1px dotted var(--line)}
 .toc a span{font-family:var(--f-display);font-size:12px;color:var(--pink);padding-top:5px;min-width:26px}
 .toc a:hover{color:var(--pink)}
@@ -87,12 +106,13 @@ p{margin:0}
 .ep{padding-block:52px 8px;display:flex;flex-direction:column;gap:18px}
 .ep-head{display:flex;flex-direction:column;gap:6px;padding-bottom:14px;border-bottom:3px double var(--line)}
 .ep-head h2{font-weight:800;font-size:clamp(26px,4vw,36px)}
-.ep p,.ep li{max-width:68ch}
+.ep p,.ep li{max-width:70ch}
 .ep ul,.ep ol{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px}
 .ep li::marker{color:var(--pink)}
 h3{font-weight:800;font-size:20px;margin-top:10px}
 .divider{display:flex;justify-content:center;gap:14px;padding-top:40px}
 .divider svg{width:14px;height:14px}
+.note{color:var(--muted);font-size:15px}
 
 .callout{border:3px solid var(--ink);background:var(--panel);box-shadow:6px 6px 0 var(--pinkfill);padding:18px 20px;display:flex;flex-direction:column;gap:8px}
 .callout .tag{font-family:var(--f-display);font-size:12px;letter-spacing:.12em;color:var(--pink)}
@@ -106,50 +126,89 @@ td.num{font-family:var(--f-mono);font-size:24px;line-height:1;text-align:right;f
 .pill{display:inline-block;font-size:12.5px;font-weight:700;padding:1px 8px;border-radius:999px;border:1.5px solid currentColor;white-space:nowrap}
 .pill.tls{color:var(--cyan)} .pill.cs{color:var(--lav)}
 
-/* diagram */
-.diagram{overflow-x:auto;border:2px solid var(--ink);background:var(--panel);padding:10px}
-.diagram svg{display:block;min-width:640px;width:100%;height:auto}
-.d-box{fill:var(--bg2);stroke:var(--ink);stroke-width:2}
-.d-hot{fill:var(--panel);stroke:var(--pink);stroke-width:3}
-.d-ghost{fill:none;stroke:var(--muted);stroke-width:2;stroke-dasharray:6 5}
-.d-t{fill:var(--ink);font-family:var(--f-body);font-size:14px;font-weight:700}
-.d-s{fill:var(--muted);font-family:var(--f-body);font-size:12.5px}
-.d-p{fill:var(--pink);font-family:var(--f-display);font-size:11px;letter-spacing:.08em}
-.d-line{stroke:var(--ink);stroke-width:2;fill:none}
-.d-line.x{stroke:var(--cyan);stroke-dasharray:7 5}
-.d-line.f{stroke:var(--pink);stroke-dasharray:3 5}
-.d-head{fill:var(--ink)} .d-head.x{fill:var(--cyan)} .d-head.f{fill:var(--pink)}
+/* panels with controls */
+.tool{border:3px solid var(--ink);background:var(--panel);box-shadow:6px 6px 0 var(--cyanfill)}
+.tool-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:2px solid var(--ink);background:var(--pinkfill);color:#2A1650;font-family:var(--f-display);font-size:12px;letter-spacing:.1em}
+.tool-bar i{width:11px;height:11px;border:2px solid #2A1650;border-radius:50%;display:inline-block;background:#FFF0F7}
+.tool-body{padding:16px;display:flex;flex-direction:column;gap:14px}
+
+/* trust explorer */
+.tx{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:16px}
+@media (max-width:760px){.tx{grid-template-columns:1fr}}
+.tx-svg{overflow-x:auto;border:2px solid var(--line);background:var(--bg)}
+.tx-svg svg{display:block;min-width:600px;width:100%;height:auto}
+.tx-ctrl{display:flex;flex-direction:column;gap:12px;font-size:15px;min-width:0}
+.tx-ctrl fieldset{border:2px solid var(--line);margin:0;padding:8px 12px 10px;display:flex;flex-direction:column;gap:4px}
+.tx-ctrl legend{font-family:var(--f-display);font-size:11px;letter-spacing:.1em;color:var(--pink);padding:0 4px}
+.tx-ctrl label{display:flex;gap:8px;align-items:flex-start;line-height:1.35;cursor:pointer}
+.tx-ctrl input{accent-color:var(--pink);margin-top:3px;flex:none}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.btn{font-family:var(--f-body);font-size:14px;font-weight:700;padding:6px 10px;border:2px solid var(--ink);background:var(--panel);color:var(--ink);cursor:pointer;border-radius:4px;line-height:1.2}
+.btn:hover{background:var(--bg2)}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.btn.primary{background:var(--pinkfill);color:#2A1650}
+.verdict{border:2px solid var(--ink);padding:12px 14px;display:flex;flex-direction:column;gap:6px;background:var(--bg2)}
+.verdict .big{font-weight:800;font-size:19px}
+.verdict.safe .big{color:var(--good)} .verdict.open .big{color:var(--bad)}
+.verdict ul{font-size:14.5px;gap:3px}
+.n rect{fill:var(--bg2);stroke:var(--ink);stroke-width:2}
+.n text.t{fill:var(--ink);font-family:var(--f-body);font-size:13.5px;font-weight:700}
+.n text.s{fill:var(--muted);font-family:var(--f-body);font-size:11.5px}
+.n text.x{fill:var(--bad);font-family:var(--f-display);font-size:10px;letter-spacing:.06em}
+.n.off rect{stroke-dasharray:5 5;opacity:.55} .n.off text{opacity:.55}
+.n.blocked rect{stroke:var(--bad);stroke-width:3;stroke-dasharray:3 3}
+.n.live rect{stroke:var(--pink);stroke-width:3.5}
+.n.leaf rect{fill:var(--panel)}
+.e{fill:none;stroke:var(--muted);stroke-width:2;stroke-dasharray:6 5;opacity:.7}
+.e.live{stroke:var(--pink);stroke-width:3.5;stroke-dasharray:none;opacity:1}
+.tx-note{fill:var(--muted);font-family:var(--f-body);font-size:11.5px;font-style:italic}
 
 /* timeline */
-.tl{list-style:none;padding:0!important;margin:0;gap:0!important;border-left:3px solid var(--line);margin-left:6px}
+.tl{list-style:none;padding:0!important;margin:0 0 0 6px;gap:0!important;border-left:3px solid var(--line)}
 .tl li{position:relative;padding:0 0 18px 22px;max-width:none}
 .tl li::before{content:"";position:absolute;left:-9px;top:8px;width:13px;height:13px;background:var(--panel);border:3px solid var(--lav);transform:rotate(45deg)}
 .tl li.hot::before{border-color:var(--pink);background:var(--pinkfill)}
 .tl time{display:block;font-family:var(--f-mono);font-size:21px;line-height:1.2;color:var(--pink)}
+.tl .src{font-size:14px}
 .tl li.gap{font-family:var(--f-display);font-size:12px;letter-spacing:.1em;color:var(--muted);padding:6px 0 18px 22px}
 .tl li.gap::before{display:none}
 
 /* console */
 .console{border:3px solid var(--ink);box-shadow:6px 6px 0 var(--cyanfill);background:var(--crt);color:var(--crtink)}
-.console-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:2px solid var(--ink);background:var(--pinkfill);color:#2A1650;font-family:var(--f-display);font-size:12px;letter-spacing:.1em}
-.console-bar i{width:11px;height:11px;border:2px solid #2A1650;border-radius:50%;display:inline-block;background:#FFF0F7}
 .console-body{padding:16px;display:flex;flex-direction:column;gap:14px;font-family:var(--f-mono);font-size:20px;line-height:1.25}
 .keys{display:flex;flex-wrap:wrap;gap:8px}
-.keys button,.run{font-family:var(--f-mono);font-size:19px;line-height:1;padding:7px 10px 8px;background:transparent;color:var(--crtink);border:2px solid var(--crtdim);cursor:pointer;border-radius:4px}
-.keys button[aria-pressed="true"]{background:var(--crtink);color:var(--crt);border-color:var(--crtink)}
+.keys button,.ctl{font-family:var(--f-mono);font-size:19px;line-height:1;padding:7px 10px 8px;background:transparent;color:var(--crtink);border:2px solid var(--crtdim);cursor:pointer;border-radius:4px}
+.keys button[aria-pressed="true"],.ctl[aria-pressed="true"]{background:var(--crtink);color:var(--crt);border-color:var(--crtink)}
 .keys button.honest{border-style:dashed}
-.run{background:#FF8CC6;color:#2A1650;border-color:#FF8CC6;font-size:22px;padding:9px 16px 10px;align-self:flex-start}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.run{font-family:var(--f-mono);font-size:22px;line-height:1;padding:9px 16px 10px;background:#FF8CC6;color:#2A1650;border:2px solid #FF8CC6;cursor:pointer;border-radius:4px;align-self:flex-start}
 .run:disabled{opacity:.5;cursor:default}
-.qbox{word-break:break-all;color:var(--crtdim)}
-.qbox b{color:var(--crtink);font-weight:400}
-.log{min-height:9.2em;max-height:9.2em;overflow:hidden;white-space:pre;color:var(--crtdim);border-top:1px dashed var(--crtdim);padding-top:8px}
+.cinfo{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 14px;color:var(--crtdim);font-size:19px}
+.cinfo dt{color:var(--crtdim)} .cinfo dd{margin:0;color:var(--crtink);overflow-wrap:anywhere}
+.cinfo a{color:#FFD84D}
+.log{min-height:9.2em;max-height:9.2em;overflow:hidden;white-space:pre;color:var(--crtdim);border-top:1px dashed var(--crtdim);padding-top:8px;font-size:18px}
 .log .hit{color:#FFD84D}
-.result{font-size:24px;color:#FFD84D;min-height:1.3em}
+.log .ok{color:#9BFFD9}
+.result{font-size:23px;color:#FFD84D;min-height:1.3em}
 .result.fail{color:#FF9EC4}
 @media (prefers-reduced-motion:no-preference){.console-body{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px)}}
 
+/* importer + classifier */
+textarea{width:100%;min-height:150px;font-family:var(--f-mono);font-size:17px;line-height:1.2;padding:10px;border:2px solid var(--ink);background:var(--bg);color:var(--ink);border-radius:4px;resize:vertical}
+select,input[type=file]{font-family:var(--f-body);font-size:14.5px;color:var(--ink);background:var(--panel);border:2px solid var(--ink);border-radius:4px;padding:5px 8px;max-width:100%}
+.progress{height:10px;border:2px solid var(--ink);background:var(--bg)}
+.progress i{display:block;height:100%;width:0;background:var(--pinkfill)}
+.results{display:flex;flex-direction:column;gap:10px}
+.res{border:2px solid var(--line);border-left-width:8px;padding:10px 14px;display:flex;flex-direction:column;gap:4px;background:var(--bg);min-width:0}
+.res.weak{border-left-color:var(--bad)} .res.pass{border-left-color:var(--good)} .res.na{border-left-color:var(--muted)}
+.res.info{border-left-color:var(--cyan)} .res.warn{border-left-color:var(--gold)}
+.res .rt{font-weight:800}
+.res .rs{font-size:14.5px;color:var(--muted);overflow-wrap:anywhere}
+.res .tag2{font-family:var(--f-display);font-size:10.5px;letter-spacing:.1em}
+.res.weak .tag2{color:var(--bad)} .res.pass .tag2{color:var(--good)} .res.na .tag2,.res.info .tag2{color:var(--cyan)} .res.warn .tag2{color:var(--goldink)}
+
 /* code */
-.code{border:2px solid var(--ink);background:var(--crt);color:var(--crtink);position:relative}
+.code{border:2px solid var(--ink);background:var(--crt);color:var(--crtink)}
 .code pre{margin:0;padding:14px 16px;overflow-x:auto;font-family:var(--f-mono);font-size:19px;line-height:1.3}
 .code .label{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 6px 6px 12px;background:var(--bg2);color:var(--ink);border-bottom:2px solid var(--ink);font-size:14px;font-weight:700}
 .copy{font-family:var(--f-display);font-size:11px;letter-spacing:.08em;padding:6px 9px;border:2px solid var(--ink);background:var(--panel);color:var(--ink);cursor:pointer}
@@ -159,6 +218,26 @@ td.num{font-family:var(--f-mono);font-size:24px;line-height:1;text-align:right;f
 .layer{border:2px solid var(--line);padding:14px 16px;background:var(--panel);display:flex;flex-direction:column;gap:6px;min-width:0}
 .layer h3{margin:0;font-size:17px}
 .layer .who{font-family:var(--f-mono);font-size:20px;line-height:1.2;color:var(--cyan)}
+
+/* simulator */
+.sim-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.act{text-align:left;display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:2px solid var(--ink);background:var(--panel);color:var(--ink);cursor:pointer;border-radius:4px}
+.act:hover{background:var(--bg2)}
+.act[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.act[aria-pressed="true"] .ad{color:var(--bg);opacity:.85}
+.act .at{font-weight:800;font-size:15.5px;line-height:1.3}
+.act .ad{font-size:13.5px;color:var(--muted);line-height:1.4}
+.act .ah{font-family:var(--f-mono);font-size:18px;line-height:1}
+.pops{display:flex;flex-direction:column;border:2px solid var(--ink)}
+.pop{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);align-items:center;background:var(--panel)}
+.pop:last-child{border-bottom:none}
+.pop .pn{font-size:15px}
+.st{font-family:var(--f-display);font-size:10.5px;letter-spacing:.08em;padding:4px 8px 3px;border:1.5px solid currentColor;white-space:nowrap}
+.st.exposed{color:var(--bad)} .st.partial{color:var(--goldink);border-style:dashed} .st.after{color:var(--cyan)} .st.protected{color:var(--good);background:var(--bg2)}
+.sim-log{display:flex;flex-direction:column;gap:8px}
+.sim-log .entry{border-left:4px solid var(--pinkfill);padding:4px 12px;font-size:15px}
+.sim-log .entry b{display:block}
+.sim-score{font-weight:800;font-size:18px}
 
 details{border:2px solid var(--line);background:var(--panel);padding:12px 16px}
 details+details{margin-top:-6px}
@@ -179,6 +258,8 @@ details p{margin-top:8px;color:var(--muted)}
 }
 @media (prefers-reduced-motion:reduce){.sparkle,.ticker span{animation:none}}
 </style>
+</head>
+<body>
 
 <header class="hero">
   <svg class="sparkle" style="left:6%;top:18px;width:18px;height:18px" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
@@ -192,9 +273,9 @@ details p{margin-top:8px;color:var(--muted)}
       <p class="lede">How eight eMudhra intermediate CA keys ended up small enough to guess, and why your browser was fine while your build server wasn’t.</p>
       <div class="meta">
         <span class="chip hot">8 CA keys</span>
-        <span class="chip">P-384, d &lt; 256</span>
+        <span class="chip">search space ≤ 255</span>
         <span class="chip">exposed ≈17 months</span>
-        <span class="chip">CVE-2026-111943</span>
+        <span class="chip">CVE-2026-111943 <small>· downstream fix ID</small></span>
       </div>
     </div>
     <svg class="moon" viewBox="0 0 200 200" role="img" aria-label="A crescent moon with stars">
@@ -207,78 +288,104 @@ details p{margin-top:8px;color:var(--muted)}
   </div>
 </header>
 
-<div class="ticker" aria-hidden="true"><span id="ticker-text">★ EIGHT INTERMEDIATE CA KEYS ★ EVERY ONE SMALLER THAN 256 ★ CHROME &amp; FIREFOX BLOCK · 17 OCT ★ APPLE · 19 OCT ★ MICROSOFT · 20 OCT ★ NSS 3.131.1 DROPS emSign ECC ROOT CA – G3 ★ UPDATE YOUR TRUST STORES ★ REBUILD YOUR GO BINARIES ★ EIGHT INTERMEDIATE CA KEYS ★ EVERY ONE SMALLER THAN 256 ★ CHROME &amp; FIREFOX BLOCK · 17 OCT ★ APPLE · 19 OCT ★ MICROSOFT · 20 OCT ★ NSS 3.131.1 DROPS emSign ECC ROOT CA – G3 ★ UPDATE YOUR TRUST STORES ★ REBUILD YOUR GO BINARIES&nbsp;</span></div>
+<div class="ticker" aria-hidden="true"><span id="ticker-text">★ EIGHT INTERMEDIATE CA KEYS ★ EVERY ONE SMALLER THAN 256 ★ CHROME &amp; FIREFOX BLOCK · 17 OCT ★ APPLE · 19 OCT ★ MICROSOFT · 20 OCT ★ UPDATE YOUR TRUST STORES ★ REBUILD YOUR GO BINARIES ★ EIGHT INTERMEDIATE CA KEYS ★ EVERY ONE SMALLER THAN 256 ★ CHROME &amp; FIREFOX BLOCK · 17 OCT ★ APPLE · 19 OCT ★ MICROSOFT · 20 OCT ★ UPDATE YOUR TRUST STORES ★ REBUILD YOUR GO BINARIES&nbsp;</span></div>
 
 <main>
 <section class="wrap wire" aria-labelledby="wire-h">
   <div class="wire-box">
     <div class="wire-head">
       <h2 id="wire-h"><span class="dot" id="wire-dot" aria-hidden="true"></span>LIVE WIRE</h2>
-      <span class="wire-status" id="wire-status">Connecting to the feed…</span>
+      <span class="wire-status" id="wire-status">connecting…</span>
     </div>
-    <ol class="wire-list" id="wire-list">
-      <li class="wire-empty">Latest coverage of the incident appears here. The feed is refreshed automatically several times a day.</li>
+    <div class="bz" id="bz" hidden>
+      <b>MOZILLA INCIDENT BUG</b>
+      <a id="bz-link" href="https://bugzilla.mozilla.org/show_bug.cgi?id=2083449" target="_blank" rel="noopener">Bug 2083449</a>
+      <span class="mono" id="bz-meta"></span>
+    </div>
+    <ol class="wire-list" id="wire-list" aria-live="polite">
+      <li class="wire-empty">Loading the latest coverage…</li>
     </ol>
+    <div class="wire-src" id="wire-src">sources: curated feed · Hacker News · Mozilla Bugzilla</div>
   </div>
 </section>
 
 <nav class="wrap toc" aria-label="Episodes">
   <div class="eyebrow">Tonight’s episodes</div>
   <ol>
-    <li><a href="#ep1"><span>01</span>Trust chains in five minutes</a></li>
+    <li><a href="#ep1"><span>01</span>Trust paths you can break</a></li>
     <li><a href="#ep2"><span>02</span>What happened, hour by hour</a></li>
-    <li><a href="#ep3"><span>03</span>The weak keys (live attack)</a></li>
+    <li><a href="#ep3"><span>03</span>The weak keys, from the real certificates</a></li>
     <li><a href="#ep4"><span>04</span>How a ceremony goes wrong</a></li>
     <li><a href="#ep5"><span>05</span>Blast radius</a></li>
     <li><a href="#ep6"><span>06</span>Browsers vs. everything else</a></li>
-    <li><a href="#ep7"><span>07</span>Lab: is your client exposed?</a></li>
+    <li><a href="#ep7"><span>07</span>Lab: why did it fail?</a></li>
     <li><a href="#ep8"><span>08</span>Lessons and discussion</a></li>
+    <li><a href="#ep9"><span>09</span>You’re the root program</a></li>
   </ol>
+  <div class="legend" aria-label="Evidence labels">
+    <span class="item"><span class="ev ok">Confirmed</span> verified from the certificates, root programs or public records</span>
+    <span class="item"><span class="ev ca">CA-reported</span> eMudhra’s own account, not independently verified</span>
+    <span class="item"><span class="ev open">Under investigation</span> open questions</span>
+  </div>
 </nav>
 
 <!-- EP 1 -->
 <section class="wrap ep" id="ep1">
-  <div class="ep-head"><div class="eyebrow">Episode 01</div><h2>Trust chains in five minutes</h2></div>
-  <p>A TLS client trusts a server certificate only if it can build a chain from that certificate up to a <b>root</b> in its trust store. Roots rarely sign server certificates directly. They sign <b>intermediate CAs</b>, and intermediates sign the leaf certificates that websites present. Every intermediate inherits the full trust of its root, for any domain name, unless a constraint says otherwise.</p>
-  <p>That inheritance is the whole story here. Steal or guess an intermediate’s private key and you can mint a certificate for <code>yourbank.com</code> that chains to a trusted root.</p>
-  <div class="diagram">
-    <svg viewBox="0 0 760 380" role="img" aria-label="Diagram: emSign ECC Root CA G3 signs eight eMudhra intermediates; Sectigo AAA Certificate Services cross-signs the same eight keys; Windows also trusts emSign Root TLS and Root CS CA G3 directly; an attacker holding an intermediate key can issue a leaf for any domain.">
-      <defs>
-        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-head" d="M0 0 10 5 0 10Z"/></marker>
-        <marker id="ahx" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-head x" d="M0 0 10 5 0 10Z"/></marker>
-        <marker id="ahf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-head f" d="M0 0 10 5 0 10Z"/></marker>
-      </defs>
-      <text class="d-p" x="20" y="24">ROOTS (IN TRUST STORES)</text>
-      <rect class="d-box" x="20" y="36" width="220" height="62" rx="4"/>
-      <text class="d-t" x="34" y="62">emSign ECC Root CA – G3</text>
-      <text class="d-s" x="34" y="82">eMudhra · Mozilla, Chrome, Apple…</text>
-      <rect class="d-box" x="270" y="36" width="220" height="62" rx="4"/>
-      <text class="d-t" x="284" y="62">emSign Root TLS / CS – G3</text>
-      <text class="d-s" x="284" y="82">trusted directly on Windows</text>
-      <rect class="d-box" x="520" y="36" width="220" height="62" rx="4"/>
-      <text class="d-t" x="534" y="62">AAA Certificate Services</text>
-      <text class="d-s" x="534" y="82">Sectigo (Comodo) root</text>
+  <div class="ep-head"><div class="eyebrow">Episode 01</div><h2>Trust paths you can break</h2></div>
+  <p>A TLS client trusts a server certificate only if it can build a chain from that certificate up to a <b>root</b> in its trust store. Roots sign <b>intermediate CAs</b>, intermediates sign the leaf certificates that sites present, and every intermediate inherits its root’s trust for any domain unless a constraint says otherwise. Guess an intermediate’s private key and you can mint a certificate for <code>yourbank.com</code> that chains to a trusted root.</p>
+  <p>Here the same eight weak keys sit in <b>two</b> certificates each: one issued by eMudhra’s emSign Root TLS (or CS) CA – G3, one cross-signed by Sectigo’s AAA Certificate Services. emSign Root TLS CA – G3 is a root on Windows and is itself cross-signed by emSign ECC Root CA – G3 everywhere else. That gives a forged leaf up to three ways home. <span class="ev ok">Confirmed</span> <span class="note">from the certificates and chains published with the disclosure</span></p>
 
-      <path class="d-line" d="M130 98 V150 H300 V168" marker-end="url(#ah)"/>
-      <path class="d-line" d="M380 98 V168" marker-end="url(#ah)"/>
-      <path class="d-line x" d="M630 98 V150 H460 V168" marker-end="url(#ahx)"/>
-      <text class="d-s" x="140" y="140">signed 30 Apr 2025</text>
-      <text class="d-s" x="520" y="140" style="fill:var(--cyan)">cross-signed 14 May 2025</text>
-
-      <text class="d-p" x="20" y="188">INTERMEDIATES</text>
-      <rect class="d-hot" x="220" y="176" width="320" height="80" rx="4"/>
-      <text class="d-t" x="238" y="204">8 eMudhra intermediates (G3B, G3C)</text>
-      <text class="d-s" x="238" y="226">6 TLS (DV / OV / EV) · 2 code signing</text>
-      <text class="d-p" x="238" y="246">PRIVATE KEY d ∈ [1, 255]</text>
-
-      <path class="d-line f" d="M380 256 V306" marker-end="url(#ahf)"/>
-      <text class="d-p" x="20" y="300">LEAF</text>
-      <rect class="d-ghost" x="220" y="310" width="320" height="56" rx="4"/>
-      <text class="d-t" x="238" y="335">Forged certificate for any name</text>
-      <text class="d-s" x="238" y="354">TLS server, client auth / mTLS, or signed code</text>
-    </svg>
+  <div class="tool" id="tx">
+    <div class="tool-bar"><i></i><i></i><i></i>&nbsp;TRUST PATH EXPLORER</div>
+    <div class="tool-body">
+      <div class="presets" role="group" aria-label="Client presets">
+        <button class="btn" type="button" data-preset="debian">Debian/Ubuntu bundle, before the fix</button>
+        <button class="btn" type="button" data-preset="windows">Windows app, no updates, no revocation</button>
+        <button class="btn" type="button" data-preset="chrome">Chrome after 17 Oct</button>
+        <button class="btn" type="button" data-preset="certifi">certifi 2026.10.19</button>
+      </div>
+      <div class="tx">
+        <div class="tx-svg">
+          <svg viewBox="0 0 760 440" role="img" aria-label="Trust paths for a forged certificate: via emSign Root TLS CA G3 trusted directly, via its cross-certificate from emSign ECC Root CA G3, and via the Sectigo AAA cross-sign. Path states update with the controls.">
+            <defs>
+              <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="var(--muted)"/></marker>
+              <marker id="ahl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="var(--pink)"/></marker>
+            </defs>
+            <path class="e" id="e1" d="M130 100 V150"/>
+            <path class="e" id="e2" d="M130 210 V236 H220 V260"/>
+            <path class="e" id="e3" d="M380 100 V236 H320 V260"/>
+            <path class="e" id="e4" d="M630 100 V260"/>
+            <path class="e" id="e5" d="M300 324 V370"/>
+            <path class="e" id="e6" d="M575 324 V398 H490"/>
+            <g class="n" id="n-ecc"><rect x="20" y="40" width="220" height="60" rx="4"/><text class="t" x="32" y="64">emSign ECC Root CA – G3</text><text class="s" x="32" y="83">root: Mozilla, Chrome, Apple, MS</text><text class="x" x="32" y="96"></text></g>
+            <g class="n" id="n-tlsRoot"><rect x="270" y="40" width="220" height="60" rx="4"/><text class="t" x="282" y="64">emSign Root TLS CA – G3</text><text class="s" x="282" y="83">trusted as a root on Windows</text><text class="x" x="282" y="96"></text></g>
+            <g class="n" id="n-aaa"><rect x="520" y="40" width="220" height="60" rx="4"/><text class="t" x="532" y="64">AAA Certificate Services</text><text class="s" x="532" y="83">Sectigo root: Apple, MS, older bundles</text><text class="x" x="532" y="96"></text></g>
+            <g class="n" id="n-tlsX"><rect x="20" y="150" width="220" height="60" rx="4"/><text class="t" x="32" y="174">emSign Root TLS CA – G3</text><text class="s" x="32" y="193">cross-certificate from the ECC root</text><text class="x" x="32" y="206"></text></g>
+            <g class="n" id="n-kE"><rect x="145" y="260" width="250" height="64" rx="4"/><text class="t" x="157" y="284">EM … TLS CA – G3B/G3C</text><text class="s" x="157" y="303">issued by emSign Root TLS CA – G3</text><text class="x" x="157" y="317"></text></g>
+            <g class="n" id="n-kA"><rect x="450" y="260" width="250" height="64" rx="4"/><text class="t" x="462" y="284">EM … TLS CA – G3B/G3C</text><text class="s" x="462" y="303">cross-signed by AAA, 14 May 2025</text><text class="x" x="462" y="317"></text></g>
+            <text class="tx-note" x="400" y="352">same weak key in both certificates</text>
+            <g class="n leaf" id="n-leaf"><rect x="270" y="370" width="220" height="56" rx="4"/><text class="t" x="282" y="394">Forged leaf for any domain</text><text class="s" x="282" y="413">signed with the recovered d</text></g>
+          </svg>
+        </div>
+        <div class="tx-ctrl">
+          <fieldset><legend>TRUST STORE ANCHORS</legend>
+            <label><input type="checkbox" id="a-ecc"> emSign ECC Root CA – G3</label>
+            <label><input type="checkbox" id="a-tlsRoot"> emSign Root TLS CA – G3 as a root</label>
+            <label><input type="checkbox" id="a-aaa"> AAA Certificate Services</label>
+          </fieldset>
+          <fieldset><legend>CLIENT DEFENSES</legend>
+            <label><input type="checkbox" id="d-spki"> Block the weak keys by SPKI hash</label>
+            <label><input type="checkbox" id="d-blockE"> Block the eMudhra-issued certs by fingerprint</label>
+            <label><input type="checkbox" id="d-blockA"> Block the Sectigo cross-signs by fingerprint</label>
+            <label><input type="checkbox" id="d-rev"> Check revocation (CRL/OCSP)</label>
+            <label><input type="checkbox" id="d-ct"> Enforce Certificate Transparency</label>
+          </fieldset>
+        </div>
+      </div>
+      <div class="verdict" id="tx-verdict" aria-live="polite"></div>
+    </div>
   </div>
-  <p>Two details make cleanup harder. Sectigo had cross-signed all eight keys under its own root, so the same keys chain to <b>two</b> independent roots. And on Windows, eMudhra’s TLS and code-signing G3 roots are trusted directly. Removing one root from one trust store does not close every path.</p>
+  <p class="note">Try this: pick the Debian preset and remove only the emSign ECC root, the fix most people reach for first. Then compare blocking by fingerprint with blocking by SPKI. Store memberships follow the root-store data published with the disclosure; real clients have more knobs than this model.</p>
 </section>
 
 <div class="divider" aria-hidden="true">
@@ -291,22 +398,23 @@ details p{margin-top:8px;color:var(--muted)}
 <section class="wrap ep" id="ep2">
   <div class="ep-head"><div class="eyebrow">Episode 02</div><h2>What happened, hour by hour</h2></div>
   <ol class="tl">
-    <li><time>2025-04-30</time>Key ceremony. eMudhra generates a batch of 24 intermediates; eight of them receive keys that are tiny integers.</li>
-    <li><time>2025-05-14</time>Sectigo cross-signs the eight under AAA Certificate Services.</li>
-    <li><time>2025-05-23</time>Earliest archived evidence of <b>invalid CRL signatures</b> from the six TLS intermediates.</li>
-    <li><time>2025-06-05 → 06-06</time>Mozilla bug 1970728 (“Invalid CRL signatures”) is filed. eMudhra blames a manual step that used the wrong CA key, republishes CRLs, and the bug is closed.</li>
+    <li><time>2025-04-30 · 15:35–16:38 UTC</time>The eight intermediates are issued (their notBefore times). Mozilla’s incident report places them in a batch of 24 generated that day. <span class="ev ok">Confirmed</span></li>
+    <li><time>2025-05-14</time>Sectigo cross-signs all eight keys under AAA Certificate Services. <span class="ev ok">Confirmed</span></li>
+    <li><time>2025-05-23</time>Earliest archived evidence of invalid CRL signatures from the six TLS intermediates. <span class="ev ok">Confirmed</span></li>
+    <li><time>2025-06-05 → 06-06</time>Mozilla bug 1970728 (“Invalid CRL signatures”) is filed. eMudhra blames a manual step that used the wrong CA key, republishes CRLs, and the bug is closed. <span class="ev ca">CA-reported</span> <span class="src"><a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1970728" target="_blank" rel="noopener">bug 1970728</a></span></li>
     <li class="gap">· · · 16 MONTHS OF NOTHING VISIBLE · · ·</li>
-    <li class="hot"><time>2026-10-17 · 18:05 UTC</time>A researcher signing as “Wayne”, running checks against the Common CA Database (CCADB), reports the keys to Google, Mozilla, Apple, Microsoft and eMudhra. Proof: the message <i>“We have a problem here – Wayne”</i> signed with each of the eight keys.</li>
-    <li class="hot"><time>2026-10-17 · 19:45 UTC</time>Chrome ships a CRLSet blocking the intermediates.</li>
-    <li class="hot"><time>2026-10-17 · 22:59 UTC</time>Mozilla’s OneCRL block reaches standard Firefox installs, no restart needed (report received 20:06 UTC).</li>
-    <li><time>2026-10-18</time>eMudhra revokes all eight intermediates with reason “CA compromise”.</li>
-    <li><time>2026-10-19</time>Apple blocks; Sectigo revokes its cross-signs; Android gets the block via Google Play services; downstream trust stores are briefed.</li>
-    <li><time>2026-10-20</time>Microsoft blocks. Public disclosure. NSS 3.131.1 removes emSign ECC Root CA – G3; Go, Debian, certifi and others ship updates.</li>
-    <li><time>2026-10-27 (expected)</time>Chrome’s removal of emSign ECC Root CA – G3 reaches all devices.</li>
+    <li class="hot"><time>2026-10-17 · 18:05 UTC</time>A researcher signing as “Wayne” reports the keys after running checks against the Common CA Database, with the message <i>“We have a problem here – Wayne”</i> signed by each key. <span class="ev ok">Confirmed</span> <span class="src"><a href="https://blog.google/security/protecting-chrome-and-android-users-from-compromised-emudhra-intermediate-ca-certificates/" target="_blank" rel="noopener">Google report</a></span></li>
+    <li class="hot"><time>2026-10-17 · 19:45 UTC</time>Chrome corroborates and ships a CRLSet blocking the intermediates’ SPKI hashes. <span class="ev ok">Confirmed</span> <span class="src"><a href="https://blog.google/security/protecting-chrome-and-android-users-from-compromised-emudhra-intermediate-ca-certificates/" target="_blank" rel="noopener">Google report</a></span></li>
+    <li class="hot"><time>2026-10-17 · 20:06 → 22:59 UTC</time>Mozilla receives the report; its OneCRL block reaches standard Firefox installs with no restart. <span class="ev ok">Confirmed</span> <span class="src"><a href="https://blog.mozilla.org/security/2026/10/20/protecting-firefox-users-following-the-compromise-of-emudhra-intermediate-certificates/" target="_blank" rel="noopener">Mozilla report</a> · <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=2083449" target="_blank" rel="noopener">bug 2083449</a></span></li>
+    <li><time>2026-10-18 · 09:24–09:38 UTC</time>eMudhra revokes its eight intermediates, reason “CA compromise”. <span class="ev ok">Confirmed</span> <span class="note">revocation data</span></li>
+    <li><time>2026-10-19</time>Apple blocks. Sectigo revokes its eight cross-signs at 10:35 UTC. Android gets the block through Google Play services around 22:00 UTC. Downstream trust stores are briefed. <span class="ev ok">Confirmed</span></li>
+    <li><time>2026-10-20</time>Microsoft blocks. Public disclosure. NSS 3.131.1 removes emSign ECC Root CA – G3; Go, Debian, certifi and others ship updates. <span class="ev ok">Confirmed</span></li>
+    <li><time>2026-10-22</time>Two test hosts whose leaves were never logged to CT are added, so labs can separate trust-store results from CT enforcement. <span class="ev ok">Confirmed</span></li>
+    <li><time>2026-10-27 (expected)</time>Chrome’s removal of emSign ECC Root CA – G3 reaches all devices. Chrome is also reviewing eMudhra’s remaining roots. <span class="ev open">Under investigation</span></li>
   </ol>
   <div class="callout">
     <div class="tag">★ Key idea</div>
-    <p>Browsers moved within <b>five hours</b> because they own a push channel for distrust. Most other software has no such channel, and a fix there means a package release, an image rebuild, or a firmware update.</p>
+    <p>Browsers moved within <b>five hours</b> because they own a push channel for distrust. Most other software has none, so a fix there means a package release, an image rebuild, or a firmware update.</p>
   </div>
 </section>
 
@@ -318,38 +426,53 @@ details p{margin-top:8px;color:var(--muted)}
 
 <!-- EP 3 -->
 <section class="wrap ep" id="ep3">
-  <div class="ep-head"><div class="eyebrow">Episode 03</div><h2>The weak keys</h2></div>
-  <p>These are ECDSA keys on the NIST P-384 curve. The private key is a scalar <code>d</code>, and the public key in the certificate is the point <code>Q = d·G</code>, where <code>G</code> is the curve’s fixed generator. Security rests on <code>d</code> being a uniformly random number of about 384 bits. Each of these eight was an integer below 256: roughly <b>8 bits</b> of entropy. Recovering one means computing <code>G, 2G, 3G, …</code> until a point equals <code>Q</code>, at most 255 steps.</p>
+  <div class="ep-head"><div class="eyebrow">Episode 03</div><h2>The weak keys, from the real certificates</h2></div>
+  <p>These are ECDSA keys on the NIST P-384 curve. The private key is a scalar <code>d</code>, and the public key in the certificate is the point <code>Q = d·G</code>, where <code>G</code> is the curve’s fixed generator. Security rests on <code>d</code> being a uniformly random number of about 384 bits. Each of these eight keys is an integer below 256, so the <b>private-key search space is at most 255 candidates</b>: compute <code>G, 2G, 3G, …</code> until a point equals <code>Q</code>. How much entropy the generation process actually had is a separate question that the values alone don’t answer.</p>
   <div class="tbl">
     <table>
-      <thead><tr><th>Intermediate</th><th>Use</th><th>Subject org</th><th style="text-align:right">d</th></tr></thead>
-      <tbody>
-        <tr><td>EM DV TLS CA – G3B</td><td><span class="pill tls">TLS · DV</span></td><td>eMudhra BV</td><td class="num">156</td></tr>
-        <tr><td>EM OV TLS CA – G3B</td><td><span class="pill tls">TLS · OV</span></td><td>eMudhra BV</td><td class="num">155</td></tr>
-        <tr><td>EM EV TLS CA – G3B</td><td><span class="pill tls">TLS · EV</span></td><td>eMudhra BV</td><td class="num">115</td></tr>
-        <tr><td>EM DV TLS CA – G3C</td><td><span class="pill tls">TLS · DV</span></td><td>eMudhra Inc</td><td class="num">230</td></tr>
-        <tr><td>EM OV TLS CA – G3C</td><td><span class="pill tls">TLS · OV</span></td><td>eMudhra Inc</td><td class="num">4</td></tr>
-        <tr><td>EM EV TLS CA – G3C</td><td><span class="pill tls">TLS · EV</span></td><td>eMudhra Inc</td><td class="num">56</td></tr>
-        <tr><td>EM OV CS CA – G3B</td><td><span class="pill cs">Code signing</span></td><td>eMudhra BV</td><td class="num">66</td></tr>
-        <tr><td>EM OV CS CA – G3C</td><td><span class="pill cs">Code signing</span></td><td>eMudhra Inc</td><td class="num">237</td></tr>
-      </tbody>
+      <thead><tr><th>Intermediate</th><th>Use</th><th>Subject org</th><th>Check it</th><th style="text-align:right">d</th></tr></thead>
+      <tbody id="ktable"></tbody>
     </table>
   </div>
-  <p>The certificates themselves look structurally normal. Nothing in the ASN.1, extensions or validity dates hints at the problem. Only a test of the key itself reveals it.</p>
+  <p class="note">Every value above is recomputed in your browser from the embedded certificates: 8 eMudhra-issued certificates and 8 Sectigo cross-signs, as published with the disclosure. <span class="ev ok">Confirmed</span> The fingerprint links open each certificate on crt.sh, so you can check that the embedded bytes are the real ones.</p>
 
-  <h3>Try it: brute-force a CA key in your browser</h3>
-  <p>The console below does real P-384 arithmetic in JavaScript. Pick one of the published key values, or an honestly generated random key, and run the search. The page computes <code>Q</code> first and then searches for <code>d</code> using only <code>Q</code>.</p>
+  <h3>Recover a key from its certificate</h3>
+  <p>Pick an intermediate and which of its two certificates to attack. The console decodes the certificate’s DER, extracts <code>Q</code>, searches for <code>d</code>, then independently recomputes <code>d·G</code> by double-and-add and checks it against both coordinates of <code>Q</code>.</p>
   <div class="console">
-    <div class="console-bar"><i></i><i></i><i></i>&nbsp;KEYSEARCH.EXE · P-384</div>
+    <div class="tool-bar"><i></i><i></i><i></i>&nbsp;KEYSEARCH.EXE · P-384</div>
     <div class="console-body">
-      <div class="keys" role="group" aria-label="Choose a target key" id="keys"></div>
-      <div class="qbox" id="qbox">Q.x = …</div>
+      <div class="keys" role="group" aria-label="Choose a certificate" id="keys"></div>
+      <div class="row" role="group" aria-label="Certificate copy">
+        <button class="ctl" type="button" id="copyE" aria-pressed="true">eMudhra-issued</button>
+        <button class="ctl" type="button" id="copyA" aria-pressed="false">Sectigo cross-sign</button>
+      </div>
+      <dl class="cinfo" id="cinfo"></dl>
       <button class="run" id="run" type="button">▶ RUN ATTACK</button>
       <div class="log" id="log" aria-live="off"></div>
       <div class="result" id="result" aria-live="polite"></div>
     </div>
   </div>
-  <p>The honest key fails, as it should. Brute force over 2<sup>384</sup> values is hopeless, and even the best generic attack on elliptic-curve discrete logs (Pollard’s rho) needs on the order of 2<sup>192</sup> group operations. A correctly generated P-384 key is not the weak point in any realistic threat model. A badly generated one is.</p>
+  <p class="note">The search runs to completion first and is timed; the log then replays its steps slowly so you can watch. The time shown is the math, not the animation. The dashed button is a control: a freshly generated random key with no certificate, which the same search cannot crack.</p>
+  <p>Brute force over 2<sup>384</sup> values is hopeless, and even the best generic attack on elliptic-curve discrete logs (Pollard’s rho) needs on the order of 2<sup>192</sup> group operations. A correctly generated P-384 key is not the weak point in any realistic threat model. A badly generated one is.</p>
+
+  <h3>Test any certificate</h3>
+  <div class="tool">
+    <div class="tool-bar"><i></i><i></i><i></i>&nbsp;SMALL-SCALAR TEST</div>
+    <div class="tool-body">
+      <label for="pem-in" style="font-weight:700">Paste one or more PEM certificates, or load a .pem / .crt / .cer / .der file</label>
+      <textarea id="pem-in" spellcheck="false" placeholder="-----BEGIN CERTIFICATE-----&#10;…&#10;-----END CERTIFICATE-----"></textarea>
+      <div class="row">
+        <input type="file" id="pem-file" accept=".pem,.crt,.cer,.der,.txt">
+        <label for="pem-limit" class="note">Search up to</label>
+        <select id="pem-limit"><option value="65536">2¹⁶ (instant)</option><option value="1048576">2²⁰ (a few seconds)</option></select>
+        <button class="btn primary" type="button" id="pem-run">Test</button>
+        <button class="btn" type="button" id="pem-sample">Load an eMudhra cert</button>
+      </div>
+      <div class="progress" aria-hidden="true"><i id="pem-prog"></i></div>
+      <div class="results" id="pem-out" aria-live="polite"></div>
+      <p class="note">Runs entirely in your browser; nothing is uploaded. Supports EC P-256 and P-384 keys. Passing only rules out tiny private keys. It says nothing else about key quality.</p>
+    </div>
+  </div>
 </section>
 
 <div class="divider" aria-hidden="true">
@@ -361,18 +484,19 @@ details p{margin-top:8px;color:var(--muted)}
 <!-- EP 4 -->
 <section class="wrap ep" id="ep4">
   <div class="ep-head"><div class="eyebrow">Episode 04</div><h2>How a ceremony goes wrong</h2></div>
-  <p>A key ceremony is the scripted, witnessed, audited procedure in which a CA generates keys inside a hardware security module (HSM) and produces certificate signing requests. eMudhra’s preliminary report in Mozilla bug 2083449 describes this chain of failures:</p>
+  <p>A key ceremony is the scripted, witnessed, audited procedure in which a CA generates keys inside a hardware security module (HSM) and produces certificate signing requests. eMudhra’s preliminary account in Mozilla bug 2083449 describes this chain of failures. <span class="ev ca">CA-reported</span></p>
   <ol>
     <li><b>A faulty ceremony script</b> created a second, weak key pair on the HSM alongside each properly generated one.</li>
     <li><b>Labels looked alike.</b> Staff selected keys by human-readable label, and the weak pairs were picked when building the CSRs.</li>
-    <li><b>The certificates were issued</b> over the weak public keys, so the certified key and the key the CA actually signed with later were not the same.</li>
+    <li><b>The certificates were issued</b> over the weak public keys, so the certified key and the key the CA later signed with were not the same.</li>
     <li><b>Human error at several steps,</b> by eMudhra’s own account, let it pass review and audit.</li>
   </ol>
+  <p>Exactly how the weak keys came to exist inside the HSM environment, and why nothing in the ceremony caught them, is still being worked through publicly. <span class="ev open">Under investigation</span></p>
   <div class="callout">
     <div class="tag">★ The missed signal</div>
-    <p>If the CA kept signing CRLs with the good HSM key while the certificate carried the weak public key, every CRL signature would fail to verify. That is exactly what was observed in May–June 2025. The June bug was closed as a process slip, and eMudhra now links those invalid signatures to the same key mismatch. A pairwise-consistency check failed in production, publicly, 16 months before anyone looked closer.</p>
+    <p>If the CA kept signing CRLs with the good HSM key while the certificates carried the weak public keys, every CRL signature would fail to verify. Invalid CRL signatures from exactly these six TLS intermediates were observed in May–June 2025. <span class="ev ok">Confirmed</span> The June bug was closed as a process slip. eMudhra now links those failures to the same key mismatch. <span class="ev ca">CA-reported</span> If that holds, a pairwise-consistency check failed in production, publicly, 16 months before anyone looked closer.</p>
   </div>
-  <p>eMudhra says only one of the eight (EM DV TLS CA – G3C) was ever put into production and that none issued end-entity certificates. It has stopped issuing from the G3 hierarchy and plans to re-verify every ceremony it has performed. Because root programs are distrusting the root, about 30,000 customer certificates need to move to another hierarchy.</p>
+  <p>eMudhra says only one of the eight (EM DV TLS CA – G3C) was ever put into production, that none issued end-entity certificates, that it has stopped issuing from G3, and that it will re-verify every ceremony it has run. About 30,000 customer certificates need to move to another hierarchy. <span class="ev ca">CA-reported</span></p>
 </section>
 
 <div class="divider" aria-hidden="true">
@@ -384,16 +508,16 @@ details p{margin-top:8px;color:var(--muted)}
 <!-- EP 5 -->
 <section class="wrap ep" id="ep5">
   <div class="ep-head"><div class="eyebrow">Episode 05</div><h2>Blast radius</h2></div>
-  <p>This is unusual among CA compromises. Normally someone steals a key, and you can reason about when it happened and who has it. Here nobody had to steal anything: the key was derivable from the public certificate from the day it was issued. Assume all eight keys are known to every attacker.</p>
+  <p>This is unusual among CA compromises. Normally someone steals a key, and you can reason about when it happened and who has it. Here nobody had to steal anything: the key was derivable from the public certificate from the day it was issued. Treat all eight keys as known to every attacker.</p>
   <div class="grid2">
     <div class="layer"><h3>TLS impersonation</h3><p>Six keys can sign a server certificate for any domain. An on-path attacker can intercept or modify HTTPS traffic for any client that accepts the chain.</p></div>
-    <div class="layer"><h3>Client auth and mTLS</h3><p>At least one intermediate carries the Client Auth EKU, so forged client certificates are possible against servers that authenticate clients through these roots.</p></div>
-    <div class="layer"><h3>Code signing</h3><p>Two keys chain to a code-signing root trusted by Microsoft. Signed malware could look like it came from a verified publisher on systems that skip revocation checks.</p></div>
-    <div class="layer"><h3>Exposure window</h3><p>About 17 months (April 2025 to October 2026). No exploitation has been confirmed, and nothing can prove the keys were never used against clients that ignore CT.</p></div>
+    <div class="layer"><h3>Client auth and mTLS</h3><p>All six TLS intermediates carry both the serverAuth and clientAuth EKUs, so forged client certificates are possible against servers that authenticate clients through these roots. <span class="ev ok">Confirmed</span></p></div>
+    <div class="layer"><h3>Code signing</h3><p>Two keys carry only the codeSigning EKU and chain to emSign Root CS CA – G3, a root in Microsoft’s store. Signed malware could look verified on systems that skip revocation checks.</p></div>
+    <div class="layer"><h3>Exposure window</h3><p>About 17 months, April 2025 to October 2026. No exploitation has been confirmed. <span class="ev open">Under investigation</span></p></div>
   </div>
   <div class="callout">
     <div class="tag">★ What CT proves, and what it doesn’t</div>
-    <p>No certificate chaining to these intermediates appears in Certificate Transparency logs before the block. Chrome, Firefox, Safari and Edge refuse publicly trusted TLS certificates without CT proofs, so they could not have been attacked. curl, Python, Node.js, Go services and IoT firmware don’t enforce CT, and for them the logs say nothing. Code-signing certificates aren’t logged at all.</p>
+    <p>No TLS certificate chaining to these intermediates was logged to Certificate Transparency before the block. <span class="ev ok">Confirmed</span> So normally configured clients that enforce CT for publicly trusted TLS, such as default Chrome, Firefox, Safari and Edge, could not have accepted a forged server certificate. That doesn’t cover browsers with CT enforcement turned off by policy, or curl, Python, Node.js, Go services and IoT firmware, which don’t check CT; for them the logs say nothing. Client-auth and code-signing certificates aren’t subject to CT at all.</p>
   </div>
 </section>
 
@@ -406,25 +530,22 @@ details p{margin-top:8px;color:var(--muted)}
 <!-- EP 6 -->
 <section class="wrap ep" id="ep6">
   <div class="ep-head"><div class="eyebrow">Episode 06</div><h2>Browsers vs. everything else</h2></div>
-  <p>A browser rejecting one of these certificates now does so three ways at once. Most other TLS stacks have none of these defenses and rely on a static root bundle.</p>
+  <p>A browser rejecting one of these certificates now does so several ways at once. Most other TLS stacks have none of these defenses and rely on a static root bundle. You can reproduce each case in the <a href="#tx">trust path explorer</a>.</p>
   <div class="grid2">
     <div class="layer"><div class="who">Firefox · OneCRL / CRLite</div><h3>Pushed intermediate blocklist</h3><p>Delivered through remote settings, no update or restart. Firefox 158.0.1 and the ESRs carry it for installs that disable remote settings.</p></div>
-    <div class="layer"><div class="who">Chrome · CRLSets</div><h3>Pushed revocation set</h3><p>Shipped 1 h 40 m after the report. Chrome didn’t need to block the code-signing keys, since its TLS verifier won’t build a path through a code-signing-only intermediate.</p></div>
-    <div class="layer"><div class="who">All major browsers · CT</div><h3>Transparency enforcement</h3><p>A forged leaf has no SCTs, and Google worked to ensure logs refuse certificates from these CAs.</p></div>
-    <div class="layer"><div class="who">Root programs</div><h3>Distrust the root</h3><p>Mozilla removed emSign ECC Root CA – G3 in NSS 3.131.1. Chrome is removing it too and reviewing eMudhra’s remaining roots.</p></div>
+    <div class="layer"><div class="who">Chrome · CRLSets</div><h3>Blocks by SPKI hash</h3><p>Shipped 1 h 40 m after the report. Blocking the key rather than one certificate also covers the Sectigo cross-signs. <span class="ev ok">Confirmed</span></p></div>
+    <div class="layer"><div class="who">All major browsers · CT</div><h3>Transparency enforcement</h3><p>A forged leaf has no SCTs, and Google says CT logs now reject certificates chaining to these CAs. <span class="ev ok">Confirmed</span></p></div>
+    <div class="layer"><div class="who">Root programs</div><h3>Distrust the root</h3><p>Mozilla removed emSign ECC Root CA – G3 in NSS 3.131.1; Chrome is removing it too.</p></div>
   </div>
+  <p class="note">Chrome didn’t need to block the two code-signing keys: per the Chrome Root Program, its TLS verifier won’t build a server-certificate path through an intermediate restricted to code signing.</p>
   <h3>Where the gap is</h3>
   <ul>
     <li><b>Bundled CA files.</b> curl, Python (certifi, pip, uv), Node.js and Rust (webpki-roots) carry their own copy of the Mozilla roots and usually don’t check revocation. In Scott Helme’s tests, curl, Python and Node.js on Linux and macOS accepted a forged certificate from EM DV TLS CA – G3B.</li>
-    <li><b>Static binaries.</b> Go embeds its fallback roots and the new block at compile time. Deployed Go binaries keep the old behaviour until rebuilt with Go 1.27.3 or 1.26.10. The same applies to Electron apps.</li>
+    <li><b>Static binaries.</b> Go embeds its fallback roots and the new block at compile time. Deployed Go binaries keep the old behaviour until rebuilt with Go 1.27.3 or 1.26.10. The same goes for Electron apps.</li>
     <li><b>Containers.</b> A running image keeps the <code>ca-certificates</code> it was built with. Rebuild from a patched base.</li>
     <li><b>macOS command-line tools.</b> The built-in <code>curl</code>, <code>git</code>, <code>python3</code> and <code>openssl</code> read <code>/etc/ssl/cert.pem</code>, which wasn’t updated, and don’t consult the OS block.</li>
     <li><b>Embedded and IoT devices</b> with frozen trust stores. These need the intermediates distrusted by hand, segmentation, and outbound restrictions.</li>
   </ul>
-  <div class="callout">
-    <div class="tag">★ Why “remove the root” is not enough</div>
-    <p>Removing emSign ECC Root CA – G3 still leaves the Sectigo cross-signs chaining the same keys to AAA Certificate Services, and Windows trusts the eMudhra TLS and code-signing G3 roots directly. Debian removed both emSign ECC Root CA – G3 and AAA Certificate Services. Removing AAA can break legitimate sites, so it needs testing before broad rollout.</p>
-  </div>
   <div class="tbl">
     <table>
       <thead><tr><th>Component</th><th>Fixed in</th><th>Note</th></tr></thead>
@@ -432,17 +553,18 @@ details p{margin-top:8px;color:var(--muted)}
         <tr><td>NSS</td><td><code>3.131.1</code></td><td>Drops emSign ECC Root CA – G3</td></tr>
         <tr><td>Go</td><td><code>1.27.3</code>, <code>1.26.10</code></td><td>CVE-2026-111943; rebuild binaries</td></tr>
         <tr><td>Node.js</td><td><code>22.23.4</code>, <code>24.22.1</code>, <code>26.12.1</code></td><td>One per supported line</td></tr>
+        <tr><td>Bun</td><td><code>1.4.4</code></td><td></td></tr>
         <tr><td>Python certifi</td><td><code>2026.10.19</code></td><td>Also pip <code>26.2.2</code>, uv <code>0.13.4</code></td></tr>
         <tr><td>Rust</td><td>rustls-webpki <code>0.103.16</code>, webpki-roots <code>1.0.10</code></td><td></td></tr>
         <tr><td>Java (OpenJDK / Oracle)</td><td><code>21.0.13.0.2</code>, <code>17.0.21.0.2</code>, <code>8u511</code>…</td><td>All supported lines</td></tr>
         <tr><td>Electron</td><td><code>44.9.1</code>, <code>43.8.1</code>, <code>42.11.16</code></td><td>Rebuild apps</td></tr>
         <tr><td>curl CA bundle</td><td><code>2026-10-20</code> extract</td><td></td></tr>
         <tr><td>Debian / Ubuntu / Alpine</td><td>updated <code>ca-certificates</code></td><td>Alpine <code>20261020-r0</code></td></tr>
-        <tr><td>Bun</td><td>pending</td><td>As of 21 Oct</td></tr>
+        <tr><td>Composer ca-bundle, Erlang certifi</td><td>pending</td><td>As of 22 Oct</td></tr>
       </tbody>
     </table>
   </div>
-  <p style="color:var(--muted);font-size:15px">About the CVE: the flaw sits in a CA’s key ceremony, not in a software product, so the incident itself has no CVE. Downstream projects assigned IDs to track their trust-store fixes: CVE-2026-111943 (Go, reused by Red Hat and others) and CVE-2026-113470 (Firefox’s OneCRL update).</p>
+  <p class="note">About the CVE in the header: the flaw sits in a CA’s key ceremony, not a software product, so the incident itself has no CVE. CVE-2026-111943 was assigned by the Go project to track its trust-store fix and reused by Red Hat and others for theirs; Firefox’s OneCRL update is CVE-2026-113470.</p>
 </section>
 
 <div class="divider" aria-hidden="true">
@@ -453,29 +575,61 @@ details p{margin-top:8px;color:var(--muted)}
 
 <!-- EP 7 -->
 <section class="wrap ep" id="ep7">
-  <div class="ep-head"><div class="eyebrow">Episode 07</div><h2>Lab: is your client exposed?</h2></div>
-  <p>The community disclosure site runs test hosts that serve chains through the compromised intermediates. For these checks a <b>certificate error is the good result</b>.</p>
-  <h3>Task 1 · Probe your command-line clients</h3>
-  <div class="code"><div class="label">shell<button class="copy" type="button">COPY</button></div><pre>curl https://dv-g3b-emudhra.we-have-a-problem.com/
-curl https://dv-g3b-aaa-emudhra.we-have-a-problem.com/
-<span class="c"># error  → client rejects the intermediates (good)
-# a page → this client still trusts them; update its trust store</span></pre></div>
-  <p>The second host serves the Sectigo cross-signed path. Run both from your laptop, a CI runner and a container, and compare.</p>
+  <div class="ep-head"><div class="eyebrow">Episode 07</div><h2>Lab: why did it fail?</h2></div>
+  <p>The disclosure site runs test hosts that serve chains through the compromised intermediates. A failed connection is not automatically good news: it only helps if it failed <b>for the right reason</b>. A corporate proxy, an expired test certificate or a DNS problem all look like “error” too.</p>
 
-  <h3>Task 2 · Check the bundle your language uses</h3>
-  <div class="code"><div class="label">shell<button class="copy" type="button">COPY</button></div><pre>python3 -c "import certifi; print(certifi.__version__)"   <span class="c"># want ≥ 2026.10.19</span>
-node -p "process.versions.node"                            <span class="c"># 22.23.4 / 24.22.1 / 26.12.1</span>
-go version                                                 <span class="c"># ≥ 1.27.3 or 1.26.10, then rebuild</span>
-grep -E 'emSign_ECC|Comodo_AAA' /etc/ca-certificates.conf   <span class="c"># Debian/Ubuntu: '!' = distrusted</span></pre></div>
+  <h3>Task 1 · Probe four hosts, read the pattern</h3>
+  <div class="code"><div class="label">shell<button class="copy" type="button">COPY</button></div><pre>for h in dv-g3b dv-g3b-aaa dv-g3b-noct dv-g3b-aaa-noct; do
+  printf '%-18s ' "$h"
+  curl -sS -o /dev/null "https://$h-emudhra.we-have-a-problem.com/" 2&gt;&amp;1 &amp;&amp; echo connected
+done</pre></div>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Host</th><th>Chain</th><th>Leaf in CT?</th><th>If it connects</th></tr></thead>
+      <tbody>
+        <tr><td><code>dv-g3b</code></td><td>EM DV G3B ← emSign Root TLS G3 (cross-signed by ECC root)</td><td>yes</td><td>client trusts the eMudhra path</td></tr>
+        <tr><td><code>dv-g3b-aaa</code></td><td>EM DV G3B (Sectigo cross-sign) ← AAA</td><td>yes</td><td>client trusts the Sectigo path</td></tr>
+        <tr><td><code>dv-g3b-noct</code></td><td>same as <code>dv-g3b</code></td><td>no</td><td>trusts the path <b>and</b> doesn’t enforce CT: attackable unseen</td></tr>
+        <tr><td><code>dv-g3b-aaa-noct</code></td><td>same as <code>dv-g3b-aaa</code></td><td>no</td><td>same, via the Sectigo path</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">A browser that blocks the logged hosts by revocation and the no-CT hosts by CT is doing everything right. A command-line client that fails only the eMudhra path but connects to the AAA path has the exact gap from Episode 1. More hosts (OV/EV, G3C) are listed on the disclosure site.</p>
 
-  <h3>Task 3 · Verify the reporter’s proof</h3>
-  <p>The disclosure site’s <code>proof.zip</code> holds each certificate, its public key, and a signature over the reporter’s message. Confirm that the signing key matches the certified key:</p>
-  <div class="code"><div class="label">shell<button class="copy" type="button">COPY</button></div><pre>openssl x509 -in EM-DV-TLS-CA-G3B.crt.pem -noout -pubkey | diff - EM-DV-TLS-CA-G3B.pub.pem
+  <h3>Task 2 · Classify the error</h3>
+  <p>Paste whatever your client printed (curl, openssl, Python, Node, Go, Java, a browser error code) and get a reading of what it does and doesn’t prove.</p>
+  <div class="tool">
+    <div class="tool-bar"><i></i><i></i><i></i>&nbsp;ERROR READER</div>
+    <div class="tool-body">
+      <label for="err-in" style="font-weight:700">Client output</label>
+      <textarea id="err-in" spellcheck="false" style="min-height:110px" placeholder="curl: (60) SSL certificate problem: …"></textarea>
+      <div class="row" role="group" aria-label="Examples">
+        <span class="note">Examples:</span>
+        <button class="btn" type="button" data-ex="curl: (60) SSL certificate problem: unable to get local issuer certificate">curl unknown issuer</button>
+        <button class="btn" type="button" data-ex="NET::ERR_CERT_REVOKED">Chrome revoked</button>
+        <button class="btn" type="button" data-ex="NET::ERR_CERTIFICATE_TRANSPARENCY_REQUIRED">Chrome CT</button>
+        <button class="btn" type="button" data-ex="curl: (60) SSL certificate problem: self-signed certificate in certificate chain">proxy</button>
+        <button class="btn" type="button" data-ex="dv-g3b-aaa         connected">connected</button>
+      </div>
+      <div class="results" id="err-out" aria-live="polite"></div>
+    </div>
+  </div>
+  <p>For exact codes, ask OpenSSL directly: <code>openssl s_client -connect dv-g3b-emudhra.we-have-a-problem.com:443 -servername dv-g3b-emudhra.we-have-a-problem.com &lt;/dev/null 2&gt;/dev/null | grep "Verify return code"</code>. Code 20 is an unknown issuer, 23 is revoked (only when revocation checking is on), 10 is expired, 19 usually means interception.</p>
+
+  <h3>Task 3 · Verify offline, against a specific bundle</h3>
+  <div class="code"><div class="label">shell · inside chains.zip from the disclosure site<button class="copy" type="button">COPY</button></div><pre>openssl verify -show_chain -untrusted dv-g3b-aaa-emudhra.we-have-a-problem.com.pem \
+  dv-g3b-aaa-emudhra.we-have-a-problem.com.pem                     <span class="c"># system default store</span>
+openssl verify -show_chain -CAfile "$(python3 -m certifi)" \
+  -untrusted dv-g3b-emudhra.we-have-a-problem.com.pem \
+  dv-g3b-emudhra.we-have-a-problem.com.pem                         <span class="c"># certifi's bundle</span>
+<span class="c"># "OK" = that store still trusts the compromised intermediate (no revocation check)</span></pre></div>
+
+  <h3>Task 4 · Verify the reporter’s proof</h3>
+  <div class="code"><div class="label">shell · inside proof.zip<button class="copy" type="button">COPY</button></div><pre>openssl x509 -in EM-DV-TLS-CA-G3B.crt.pem -noout -pubkey | diff - EM-DV-TLS-CA-G3B.pub.pem
 openssl dgst -sha384 -verify EM-DV-TLS-CA-G3B.pub.pem \
   -signature EM-DV-TLS-CA-G3B.sig message.txt</pre></div>
 
-  <h3>Task 4 · Write the check the ceremony was missing</h3>
-  <p>Given any EC CA certificate, test whether its key is a small scalar. This takes a few seconds for 2<sup>16</sup> candidates and would have caught all eight keys on day one.</p>
+  <h3>Task 5 · Write the check the ceremony was missing</h3>
   <div class="code"><div class="label">python · weak_key_check.py<button class="copy" type="button">COPY</button></div><pre>import sys
 from cryptography import x509
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -491,7 +645,7 @@ for d in range(1, 1 &lt;&lt; 16):
         break
 else:
     print("no small scalar found")</pre></div>
-  <p style="color:var(--muted);font-size:15px">Extension: rewrite it with incremental point addition (Q<sub>k+1</sub> = Q<sub>k</sub> + G) instead of a fresh scalar multiplication each step, and measure the speed-up.</p>
+  <p class="note">Extension: rewrite it with incremental point addition in Jacobian coordinates, the way the in-page tester does, and measure the speed-up.</p>
 </section>
 
 <div class="divider" aria-hidden="true">
@@ -507,161 +661,518 @@ else:
   <ul>
     <li><b>Pairwise consistency, every time.</b> Before publishing a certificate, sign a test value with the exact HSM key handle you will use and verify it with the certificate’s public key.</li>
     <li><b>Select keys by fingerprint, not by label.</b> Bind CSRs to a key identifier (SKI or public-key hash) that the ceremony record checks, not to a name a person reads off a screen.</li>
-    <li><b>Lint keys, not only certificates.</b> Small-scalar, duplicate-key and known-weak-generator tests are cheap and belong in ceremony scripts and in CA monitoring.</li>
+    <li><b>Lint keys, not only certificates.</b> Small-scalar, duplicate-key and known-weak-generator tests are cheap and belong in ceremony scripts and CA monitoring.</li>
     <li><b>Treat “wrong key” symptoms as security events.</b> An invalid CRL signature from a CA is a key-integrity question first and a process question second.</li>
   </ul>
   <h3>For anyone who relies on keys</h3>
   <ul>
     <li><b>Know every trust store you ship.</b> OS bundle, language bundle, the copy inside a static binary, the one baked into a container image or firmware.</li>
+    <li><b>Block keys, not certificates.</b> An SPKI block covers every certificate carrying the key, cross-signs included.</li>
     <li><b>Have a distrust path faster than a release.</b> Browsers have OneCRL and CRLSets; most backends have nothing between “root trusted” and “next package update.”</li>
-    <li><b>Enforce CT where you can.</b> It turned an unknowable exposure into a provable non-event for browser users.</li>
+    <li><b>Enforce CT where you can.</b> It turned an unknowable exposure into a provable non-event for normally configured browsers.</li>
   </ul>
 
   <h3>Discussion questions</h3>
-  <details><summary>Why did Chrome block only six of the eight intermediates?</summary><p>The other two are restricted to code signing. Chrome’s TLS path builder won’t accept a code-signing-only intermediate in a server chain, so those keys couldn’t produce a certificate Chrome would trust for HTTPS.</p></details>
-  <details><summary>Mozilla removed emSign ECC Root CA – G3. Why can a client with that update still be at risk?</summary><p>The Sectigo cross-signs chain the same eight keys to AAA Certificate Services. A client that trusts AAA, doesn’t check revocation, and lacks an intermediate blocklist can still build a valid path.</p></details>
-  <details><summary>What lets us say browser users were never attacked, and why doesn’t that extend to curl?</summary><p>CT logs show no certificate under these intermediates before the block, and browsers require CT proofs. curl and most libraries don’t check SCTs, so a forged certificate never logged anywhere would still be accepted.</p></details>
-  <details><summary>How could the June 2025 CRL incident have exposed this 16 months earlier?</summary><p>Ask why the CRL signature didn’t verify against the certificate’s key. Recovering or comparing the certified public key with the HSM signing key would have shown a mismatch, and a small-scalar test on the certified key would have found d immediately.</p></details>
-  <details><summary>This incident has no CVE of its own, yet many products shipped “security fixes.” Is CVE the right tool for trust-store changes?</summary><p>Open question. Points for: scanners and SBOM tooling key off CVE IDs. Points against: one CA event spawned per-ecosystem IDs (Go, Firefox) that describe the same root cause differently.</p></details>
-  <details><summary>Should a root program distrust a whole hierarchy for a mistake in eight intermediates that issued no customer certificates?</summary><p>Weigh 30,000 certificates to migrate against the signal that a CA’s ceremony, audits and incident response all missed a key that was guessable for 17 months, after a public warning sign.</p></details>
+  <details><summary>Why did Chrome block only six of the eight intermediates?</summary><p>The other two carry only the codeSigning EKU. Chrome’s TLS path builder won’t accept such an intermediate in a server chain, so those keys couldn’t produce a certificate Chrome would trust for HTTPS.</p></details>
+  <details><summary>Mozilla removed emSign ECC Root CA – G3. Why can a client with that update still be at risk?</summary><p>The Sectigo cross-signs chain the same eight keys to AAA Certificate Services, and on Windows emSign Root TLS CA – G3 is a root of its own. A client that trusts either, doesn’t check revocation, and lacks a key block can still build a valid path.</p></details>
+  <details><summary>What lets us say normally configured browsers couldn’t have been attacked over TLS, and why doesn’t that extend to curl?</summary><p>CT logs show no certificate under these intermediates before the block, and default browser configurations require CT proofs for publicly trusted TLS. curl and most libraries don’t check SCTs, so a forged certificate never logged anywhere would still be accepted. The claim also doesn’t cover client-auth or code-signing uses.</p></details>
+  <details><summary>How could the June 2025 CRL incident have exposed this 16 months earlier?</summary><p>Ask why the CRL signature didn’t verify against the certificate’s key. Comparing the certified public key with the HSM signing key would have shown a mismatch, and a small-scalar test on the certified key would have found d immediately.</p></details>
+  <details><summary>Your curl connects to the AAA host but fails on the eMudhra host. What exactly is wrong with your trust store?</summary><p>The ECC root (or the TLS-G3 path) is gone, but AAA Certificate Services is still trusted, and the client neither checks revocation nor blocks the weak keys’ SPKI.</p></details>
+  <details><summary>Should a root program distrust a whole hierarchy for a mistake in eight intermediates that, by the CA’s account, issued no customer certificates?</summary><p>Weigh 30,000 certificates to migrate against the signal that a CA’s ceremony, audits and incident response all missed a key that was guessable for 17 months, after a public warning sign.</p></details>
+</section>
+
+<div class="divider" aria-hidden="true">
+  <svg viewBox="0 0 20 20" fill="var(--pink)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <svg viewBox="0 0 20 20" fill="var(--gold)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <svg viewBox="0 0 20 20" fill="var(--cyan)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+</div>
+
+<!-- EP 9 -->
+<section class="wrap ep" id="ep9">
+  <div class="ep-head"><div class="eyebrow">Episode 09</div><h2>You’re the root program</h2></div>
+  <p>Saturday, 18:05 UTC. You are a root-program security engineer. A report says eight intermediate private keys are recoverable from their public certificates. Pick your responses, in any order. Each one covers part of the problem; watch which populations stay exposed.</p>
+  <div class="tool">
+    <div class="tool-bar"><i></i><i></i><i></i>&nbsp;INCIDENT RESPONSE · T+<span id="sim-clock">0 h</span></div>
+    <div class="tool-body">
+      <div class="sim-actions" id="sim-actions"></div>
+      <div class="pops" id="sim-pops"></div>
+      <div class="sim-score" id="sim-score" aria-live="polite"></div>
+      <div class="sim-log" id="sim-log"></div>
+      <button class="btn" type="button" id="sim-reset" style="align-self:flex-start">Reset scenario</button>
+    </div>
+  </div>
+  <p class="note">The populations and effects are simplified for teaching, but each effect follows a mechanism described in the episodes above.</p>
 </section>
 
 <section class="wrap sources" aria-labelledby="src-h">
   <div class="eyebrow" id="src-h">Sources · as of 22 October 2026</div>
   <ol>
-    <li><a href="https://emudhra.we-have-a-problem.com/">eMudhra Intermediate CA Compromise</a> · community disclosure site (Dennis Jackson et al.)</li>
+    <li><a href="https://emudhra.we-have-a-problem.com/">eMudhra Intermediate CA Compromise</a> · community disclosure site; certificates, chains and proof files from its <a href="https://github.com/galadran/we-have-a-problem.com">public repository</a></li>
+    <li><a href="https://blog.google/security/protecting-chrome-and-android-users-from-compromised-emudhra-intermediate-ca-certificates/">Protecting Chrome and Android users</a> · Google / Chrome Root Program</li>
+    <li><a href="https://blog.mozilla.org/security/2026/10/20/protecting-firefox-users-following-the-compromise-of-emudhra-intermediate-certificates/">Protecting Firefox users</a> · Mozilla Security Blog</li>
+    <li><a href="https://bugzilla.mozilla.org/show_bug.cgi?id=2083449">Mozilla bug 2083449</a> · incident report and eMudhra’s preliminary root cause</li>
     <li><a href="https://www.helpnetsecurity.com/2026/10/21/emudhra-certificates-private-keys-compromised/">eMudhra security blunder left trusted CA signing keys exposed</a> · Help Net Security</li>
     <li><a href="https://socradar.io/blog/emudhra-ca-key-compromise-weak-keys-risks-and-fixes/">eMudhra CA Key Compromise: Weak Keys, Risks and Fixes</a> · SOCRadar</li>
     <li><a href="https://thehackernews.com/2026/10/eight-emudhra-ca-keys-compromised.html">Eight eMudhra CA Keys Compromised</a> · The Hacker News</li>
     <li><a href="https://www.endorlabs.com/learn/emudhra-intermediate-ca-compromise-the-trust-stores-you-patched-and-the-ones-you-didnt-know-you-had">The trust stores you patched, and the ones you didn’t know you had</a> · Endor Labs</li>
     <li><a href="https://access.redhat.com/security/vulnerabilities/RHSB-2026-012">RHSB-2026-012 Certificate compromise – eMudhra</a> · Red Hat</li>
     <li><a href="https://lwn.net/Articles/1101643/">eMudhra intermediate CA compromise</a> · LWN.net</li>
-    <li><a href="https://www.infoq.com/news/2026/10/emudhra-ca-compromise/">eMudhra Intermediate CA Compromise</a> · InfoQ</li>
-    <li><a href="https://bugzilla.mozilla.org/show_bug.cgi?id=2083449">Mozilla bug 2083449</a> · incident report and eMudhra’s preliminary root cause</li>
   </ol>
-  <div class="foot">★ Facts move fast in an active incident. Check the disclosure site before class. ★</div>
+  <div class="foot">★ Facts move fast in an active incident. The live wire above tracks new coverage. ★</div>
 </section>
 </main>
 
 <script>
-/* ===== P-384 math (BigInt, affine) ===== */
-const P = 2n**384n - 2n**128n - 2n**96n + 2n**32n - 1n;
-const A = P - 3n;
-const N = 0xffffffffffffffffffffffffffffffffffffffffffffffffc7634d81f4372ddf581a0db248b0a77aecec196accc52973n;
-const G = [0xaa87ca22be8b05378eb1c71ef320ad746e1d3b628ba79b9859f741e082542a385502f25dbf55296c3a545e3872760ab7n,
-           0x3617de4a96262c6f5d9e98bf9292dc29f8f41dbd289a147ce9da3113b5f0b8c00a60b1ce1d7e819d7a431d7c90ea0e5fn];
-const md = a => { a %= P; return a < 0n ? a + P : a; };
-function inv(a){ let r0 = md(a), r1 = P, s0 = 1n, s1 = 0n;
+/* ===== embedded certificates (from the disclosure repository) ===== */
+const CERTS = [{"name":"EM DV TLS CA - G3B","usage":"tls","issuedBy":"emSign Root TLS CA - G3","org":"eMudhra BV","sha256":"42C4ACCD12C4F59597925E1A08A7A90102608543809308D50EC427E118BA1493","revoked":"2026-10-18T09:24:32Z","pem":"-----BEGIN CERTIFICATE-----\nMIIDaDCCAu6gAwIBAgIQAKSu5njyM2K0wORgt3LyFDAKBggqhkjOPQQDAzBWMQsw\nCQYDVQQGEwJJTjElMCMGA1UECgwcZU11ZGhyYSBUZWNobm9sb2dpZXMgTGltaXRl\nZDEgMB4GA1UEAwwXZW1TaWduIFJvb3QgVExTIENBIC0gRzMwHhcNMjUwNDMwMTU1\nNDA4WhcNNDAwNDI4MTgzMDAwWjA/MQswCQYDVQQGEwJOTDETMBEGA1UECgwKZU11\nZGhyYSBCVjEbMBkGA1UEAwwSRU0gRFYgVExTIENBIC0gRzNCMHYwEAYHKoZIzj0C\nAQYFK4EEACIDYgAE557ZwEqXc8RzXlERHahawr1eZKs3S4DhLLwgOOweTw47gS/J\nhZ4eZ6+wTi+LyX90hbplqpEe6KTkW2LVzAPVa+Z4s8OMtNyTfKJGDiOEU8iSk10p\n1E+R4VYGtjzO2rRoo4IBljCCAZIwHwYDVR0jBBgwFoAU4TqrIXzx401UrtRyt/2L\nWUIgkFQwHQYDVR0OBBYEFOIeL+ccGTkOVUtiwSAkVzUkiiUUMB0GA1UdJQQWMBQG\nCCsGAQUFBwMBBggrBgEFBQcDAjBdBgNVHSAEVjBUMDkGCysGAQQBg44hAQABMCow\nKAYIKwYBBQUHAgEWHGh0dHA6Ly9yZXBvc2l0b3J5LmVtc2lnbi5jb20wDQYLKwYB\nBAGDjiEBAmQwCAYGZ4EMAQIBMHUGCCsGAQUFBwEBBGkwZzAkBggrBgEFBQcwAYYY\naHR0cDovL29jc3AtYi5lbXNpZ24uY29tMD8GCCsGAQUFBzAChjNodHRwOi8vcmVw\nb3NpdG9yeS5lbXNpZ24uY29tL2NlcnRzL0VNRFZUTFNDQUczQi5wN2MwNwYDVR0f\nBDAwLjAsoCqgKIYmaHR0cDovL2NybC5lbXNpZ24uY29tLz9yb290dGxzY2FnMy5j\ncmwwDgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQAwCgYIKoZIzj0E\nAwMDaAAwZQIwLmsGXi6oFMJ2klkcEMXMug6gvxQWZWkewiDWVzQyl2L6z6DuQfPO\nIbh1grvdULDCAjEAxZvLlxUavG69J6wnSjC8XBbqNIQsJ6CE2QdNOe84Ptxb6VG8\ngt2TlfJbHii+KNvK\n-----END CERTIFICATE-----"},{"name":"EM DV TLS CA - G3B","usage":"tls","issuedBy":"AAA Certificate Services","org":"eMudhra BV","sha256":"45A883F349AEDFD5F3A649B5498FFB121712BA8B448F3F2A91DBC5A766FCDDBE","revoked":"2026-10-19T10:35:36Z","pem":"-----BEGIN CERTIFICATE-----\nMIIDzjCCAragAwIBAgIRAKAk/fS6Zlx4XOSgIEg4WLcwDQYJKoZIhvcNAQELBQAw\nezELMAkGA1UEBhMCR0IxGzAZBgNVBAgMEkdyZWF0ZXIgTWFuY2hlc3RlcjEQMA4G\nA1UEBwwHU2FsZm9yZDEaMBgGA1UECgwRQ29tb2RvIENBIExpbWl0ZWQxITAfBgNV\nBAMMGEFBQSBDZXJ0aWZpY2F0ZSBTZXJ2aWNlczAeFw0yNTA1MTQwMDAwMDBaFw0y\nODEyMzEyMzU5NTlaMD8xCzAJBgNVBAYTAk5MMRMwEQYDVQQKDAplTXVkaHJhIEJW\nMRswGQYDVQQDDBJFTSBEViBUTFMgQ0EgLSBHM0IwdjAQBgcqhkjOPQIBBgUrgQQA\nIgNiAATnntnASpdzxHNeUREdqFrCvV5kqzdLgOEsvCA47B5PDjuBL8mFnh5nr7BO\nL4vJf3SFumWqkR7opORbYtXMA9Vr5nizw4y03JN8okYOI4RTyJKTXSnUT5HhVga2\nPM7atGijggE1MIIBMTAfBgNVHSMEGDAWgBSgEQojPpbxB+zirynvgqV/0DCktDAd\nBgNVHQ4EFgQU4h4v5xwZOQ5VS2LBICRXNSSKJRQwDgYDVR0PAQH/BAQDAgEGMBIG\nA1UdEwEB/wQIMAYBAf8CAQAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMC\nMDEGA1UdIAQqMCgwCAYGZ4EMAQIBMA0GCysGAQQBg44hAQABMA0GCysGAQQBg44h\nAQJkMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwuY29tb2RvY2EuY29tL0FB\nQUNlcnRpZmljYXRlU2VydmljZXMuY3JsMDQGCCsGAQUFBwEBBCgwJjAkBggrBgEF\nBQcwAYYYaHR0cDovL29jc3AuY29tb2RvY2EuY29tMA0GCSqGSIb3DQEBCwUAA4IB\nAQBzQ1IoqpdotM6gFrR4Q3YrKifOLeaj5XXunldpVE/vZn2TxC2y0s8oYiLR5ICE\nwqVXSB7N6BM1Mp+Nif7Jbhb2IswAfSR4Iik8+B0iRmi7lYoNlycCgHjmsjOmZaxM\nQkPmjXAJbG5f4V41OsvJZmS7lI3r0IuvEDVX3GAZ13on6IImSs9ybNpHQ7NCqkMQ\n7wH4uAO1dtpFycgJSdHaCOhHjrox2BTYGLdpUrYwY3EOAjlZ8UGgsxs7mG+xquMl\nbN1LFURwfnkVMP3T/DBIZ/ys2+lNFyxK3FlArrV4/000uTnVB1lO8oGORYdXoT5V\nGUyRCEIDhF5TBUuKF4E3kf1h\n-----END CERTIFICATE-----"},{"name":"EM OV TLS CA - G3B","usage":"tls","issuedBy":"emSign Root TLS CA - G3","org":"eMudhra BV","sha256":"98B896625C0C230ADEEC3EB2CF6AAD5001ECF9156A68644E82374CE5833BC25B","revoked":"2026-10-18T09:37:19Z","pem":"-----BEGIN CERTIFICATE-----\nMIIDZjCCAu2gAwIBAgIPbK2jZ/scEACIEg6iAtVoMAoGCCqGSM49BAMDMFYxCzAJ\nBgNVBAYTAklOMSUwIwYDVQQKDBxlTXVkaHJhIFRlY2hub2xvZ2llcyBMaW1pdGVk\nMSAwHgYDVQQDDBdlbVNpZ24gUm9vdCBUTFMgQ0EgLSBHMzAeFw0yNTA0MzAxNjAw\nMTJaFw00MDA0MjgxODMwMDBaMD8xCzAJBgNVBAYTAk5MMRMwEQYDVQQKDAplTXVk\naHJhIEJWMRswGQYDVQQDDBJFTSBPViBUTFMgQ0EgLSBHM0IwdjAQBgcqhkjOPQIB\nBgUrgQQAIgNiAARziXqg6zz9yosSQC/68KvE4SErr43ud4rJ7i1tuD+sKAxeBWOK\n56Ks1xwyKo42HN659pxDArndjXPRzGyqsswK7k4hbOl53VGKSvS2JuVoTN1lgDft\nDIVOTMEvTPhkbQ2jggGWMIIBkjAfBgNVHSMEGDAWgBThOqshfPHjTVSu1HK3/YtZ\nQiCQVDAdBgNVHQ4EFgQUm9hlUa/n5yw3rQjuaRnZvzeErgowHQYDVR0lBBYwFAYI\nKwYBBQUHAwEGCCsGAQUFBwMCMF0GA1UdIARWMFQwOQYLKwYBBAGDjiEBAAEwKjAo\nBggrBgEFBQcCARYcaHR0cDovL3JlcG9zaXRvcnkuZW1zaWduLmNvbTANBgsrBgEE\nAYOOIQECbjAIBgZngQwBAgIwdQYIKwYBBQUHAQEEaTBnMCQGCCsGAQUFBzABhhho\ndHRwOi8vb2NzcC1iLmVtc2lnbi5jb20wPwYIKwYBBQUHMAKGM2h0dHA6Ly9yZXBv\nc2l0b3J5LmVtc2lnbi5jb20vY2VydHMvRU1PVlRMU0NBRzNCLnA3YzA3BgNVHR8E\nMDAuMCygKqAohiZodHRwOi8vY3JsLmVtc2lnbi5jb20vP3Jvb3R0bHNjYWczLmNy\nbDAOBgNVHQ8BAf8EBAMCAQYwEgYDVR0TAQH/BAgwBgEB/wIBADAKBggqhkjOPQQD\nAwNnADBkAjBAk+5BizdJhrED3wb7F2Gm7bWI60dlNd075nghT2TrR4NWKZtJZcbc\n28xxIY/NONICMF6mPdsjosaqmvEMWqKcBh4vsIvXSKnQj5o8zrFB4oKS+accjYTe\n8Dz3bQjauvy9uw==\n-----END CERTIFICATE-----"},{"name":"EM OV TLS CA - G3B","usage":"tls","issuedBy":"AAA Certificate Services","org":"eMudhra BV","sha256":"5F1DED4DD590AF74631290CF073B122A2AAC6A1FA479778A0BD43579BD832699","revoked":"2026-10-19T10:35:36Z","pem":"-----BEGIN CERTIFICATE-----\nMIIDzjCCAragAwIBAgIRAOlCI73pL5FOWrmsq/2sNxAwDQYJKoZIhvcNAQELBQAw\nezELMAkGA1UEBhMCR0IxGzAZBgNVBAgMEkdyZWF0ZXIgTWFuY2hlc3RlcjEQMA4G\nA1UEBwwHU2FsZm9yZDEaMBgGA1UECgwRQ29tb2RvIENBIExpbWl0ZWQxITAfBgNV\nBAMMGEFBQSBDZXJ0aWZpY2F0ZSBTZXJ2aWNlczAeFw0yNTA1MTQwMDAwMDBaFw0y\nODEyMzEyMzU5NTlaMD8xCzAJBgNVBAYTAk5MMRMwEQYDVQQKDAplTXVkaHJhIEJW\nMRswGQYDVQQDDBJFTSBPViBUTFMgQ0EgLSBHM0IwdjAQBgcqhkjOPQIBBgUrgQQA\nIgNiAARziXqg6zz9yosSQC/68KvE4SErr43ud4rJ7i1tuD+sKAxeBWOK56Ks1xwy\nKo42HN659pxDArndjXPRzGyqsswK7k4hbOl53VGKSvS2JuVoTN1lgDftDIVOTMEv\nTPhkbQ2jggE1MIIBMTAfBgNVHSMEGDAWgBSgEQojPpbxB+zirynvgqV/0DCktDAd\nBgNVHQ4EFgQUm9hlUa/n5yw3rQjuaRnZvzeErgowDgYDVR0PAQH/BAQDAgEGMBIG\nA1UdEwEB/wQIMAYBAf8CAQAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMC\nMDEGA1UdIAQqMCgwCAYGZ4EMAQICMA0GCysGAQQBg44hAQABMA0GCysGAQQBg44h\nAQJuMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwuY29tb2RvY2EuY29tL0FB\nQUNlcnRpZmljYXRlU2VydmljZXMuY3JsMDQGCCsGAQUFBwEBBCgwJjAkBggrBgEF\nBQcwAYYYaHR0cDovL29jc3AuY29tb2RvY2EuY29tMA0GCSqGSIb3DQEBCwUAA4IB\nAQALRoOSvkzRa+tN5Rje9W5GiXd/qsicd9N6Gnh0SWC7VyWH+HycIqAnFCMYZznj\nCeGusomFYHE42SHWr85JDIbgzy6y3dO4i9n9w0Bx7yrXWBbDzFS8VgA3+EY4Cg7y\nmtoC3RPOJVtaXXPZ+68X804g1Mj+3vCSHj2lNPVgco0OzSIOJ/KMg1R9MLBkiKzb\nbERAGZHejY0HBhYd76IINZN8z6bBNah2UdFYxsOisLynPQUkol6gRLum024/FzVl\nCCDfnUusrkr+mAfPAvD/Vb8bhpA7jYtepuU+2mIdShj5lLlvAwZphn+ypWycuo2x\n0k9mldz2dqI9nhCiY+TTIOOR\n-----END CERTIFICATE-----"},{"name":"EM EV TLS CA - G3B","usage":"tls","issuedBy":"emSign Root TLS CA - G3","org":"eMudhra BV","sha256":"E7568FE6E12331F4FD7DE61DA4C7559D0F8EB192A218D4741A3BA75184333838","revoked":"2026-10-18T09:28:53Z","pem":"-----BEGIN CERTIFICATE-----\nMIIDaDCCAu2gAwIBAgIQAMfEHv6S2CXwXq6EGkqCwTAKBggqhkjOPQQDAzBWMQsw\nCQYDVQQGEwJJTjElMCMGA1UECgwcZU11ZGhyYSBUZWNobm9sb2dpZXMgTGltaXRl\nZDEgMB4GA1UEAwwXZW1TaWduIFJvb3QgVExTIENBIC0gRzMwHhcNMjUwNDMwMTYw\nMzMxWhcNNDAwNDI4MTgzMDAwWjA/MQswCQYDVQQGEwJOTDETMBEGA1UECgwKZU11\nZGhyYSBCVjEbMBkGA1UEAwwSRU0gRVYgVExTIENBIC0gRzNCMHYwEAYHKoZIzj0C\nAQYFK4EEACIDYgAEJduoWmTTl9oLEFLp6lRuSHvv6pydnWigxerc/u91ppu11vwB\n9Cv7ym60C81kwHZ+Nv/QXZeoE8WqDGyVMOec9fCGZGjxOAZCCqXIUYQLHiUlQOeQ\n5LZUw4Uu1krx6GV9o4IBlTCCAZEwHwYDVR0jBBgwFoAU4TqrIXzx401UrtRyt/2L\nWUIgkFQwHQYDVR0OBBYEFD7cINmJRpiHe4c/2IFHslwV2EcGMB0GA1UdJQQWMBQG\nCCsGAQUFBwMBBggrBgEFBQcDAjBcBgNVHSAEVTBTMDkGCysGAQQBg44hAQABMCow\nKAYIKwYBBQUHAgEWHGh0dHA6Ly9yZXBvc2l0b3J5LmVtc2lnbi5jb20wDQYLKwYB\nBAGDjiEBAngwBwYFZ4EMAQEwdQYIKwYBBQUHAQEEaTBnMCQGCCsGAQUFBzABhhho\ndHRwOi8vb2NzcC1iLmVtc2lnbi5jb20wPwYIKwYBBQUHMAKGM2h0dHA6Ly9yZXBv\nc2l0b3J5LmVtc2lnbi5jb20vY2VydHMvRU1FVlRMU0NBRzNCLnA3YzA3BgNVHR8E\nMDAuMCygKqAohiZodHRwOi8vY3JsLmVtc2lnbi5jb20vP3Jvb3R0bHNjYWczLmNy\nbDAOBgNVHQ8BAf8EBAMCAQYwEgYDVR0TAQH/BAgwBgEB/wIBADAKBggqhkjOPQQD\nAwNpADBmAjEA9Jq999oaOUKhFwopw33iCmt0OHIn3gjT43GfuOHR/YckXdwoNdDA\nlIEhz0NgRO3/AjEAvY/a3OMvktIZLYjn+WLKmp0QhrIMV+e6EpS7j4GVeOKouNp6\nMN/P+ByGeiRMghzB\n-----END CERTIFICATE-----"},{"name":"EM EV TLS CA - G3B","usage":"tls","issuedBy":"AAA Certificate Services","org":"eMudhra BV","sha256":"579480AEA166290BD3C643589E795FC0D0E54E86505D180F1DFF99EFD3199512","revoked":"2026-10-19T10:35:36Z","pem":"-----BEGIN CERTIFICATE-----\nMIIDzTCCArWgAwIBAgIRANj4aF5PK9nYJAKoWhwetzEwDQYJKoZIhvcNAQELBQAw\nezELMAkGA1UEBhMCR0IxGzAZBgNVBAgMEkdyZWF0ZXIgTWFuY2hlc3RlcjEQMA4G\nA1UEBwwHU2FsZm9yZDEaMBgGA1UECgwRQ29tb2RvIENBIExpbWl0ZWQxITAfBgNV\nBAMMGEFBQSBDZXJ0aWZpY2F0ZSBTZXJ2aWNlczAeFw0yNTA1MTQwMDAwMDBaFw0y\nODEyMzEyMzU5NTlaMD8xCzAJBgNVBAYTAk5MMRMwEQYDVQQKDAplTXVkaHJhIEJW\nMRswGQYDVQQDDBJFTSBFViBUTFMgQ0EgLSBHM0IwdjAQBgcqhkjOPQIBBgUrgQQA\nIgNiAAQl26haZNOX2gsQUunqVG5Ie+/qnJ2daKDF6tz+73Wmm7XW/AH0K/vKbrQL\nzWTAdn42/9Bdl6gTxaoMbJUw55z18IZkaPE4BkIKpchRhAseJSVA55DktlTDhS7W\nSvHoZX2jggE0MIIBMDAfBgNVHSMEGDAWgBSgEQojPpbxB+zirynvgqV/0DCktDAd\nBgNVHQ4EFgQUPtwg2YlGmId7hz/YgUeyXBXYRwYwDgYDVR0PAQH/BAQDAgEGMBIG\nA1UdEwEB/wQIMAYBAf8CAQAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMC\nMDAGA1UdIAQpMCcwBwYFZ4EMAQEwDQYLKwYBBAGDjiEBAAEwDQYLKwYBBAGDjiEB\nAngwQwYDVR0fBDwwOjA4oDagNIYyaHR0cDovL2NybC5jb21vZG9jYS5jb20vQUFB\nQ2VydGlmaWNhdGVTZXJ2aWNlcy5jcmwwNAYIKwYBBQUHAQEEKDAmMCQGCCsGAQUF\nBzABhhhodHRwOi8vb2NzcC5jb21vZG9jYS5jb20wDQYJKoZIhvcNAQELBQADggEB\nAJNFuAFW9Gnw/8+kCO4KIlZdnM1Sh2u+8cK0EYAHhXpb5FlGvYkcARigo5oS7VoM\n7FOYlTueV6yICZKNAYawZPJPhNCGK+rp3cQBEz6d0n8OZEYZov9lb3ll8ORgSDuf\nFVIW6Gagg/UnOamLBTOR8eD5V73SCme/B2cHUDw+m5E8cc+0Ujzz3Cn3ex5JrhXk\n2T3s8PoVzEmhTgGboFfcWO1EYhPPrYwdxPYRQIXAXUXhLEOVNL9ASbZJLFI8E1IM\nm7NwxVN2s38jWpaCUaaF0tg7hfiy7oe13rzJfHsdqldJVTTUTPWVx8TC4ju0VLet\nbAlwhwFT6AP8uIVMGUHNw24=\n-----END CERTIFICATE-----"},{"name":"EM DV TLS CA - G3C","usage":"tls","issuedBy":"emSign Root TLS CA - G3","org":"eMudhra Inc","sha256":"0164D7CEAE5BB909C272AF151FF44B1177AE9B47D9424B94F1D9558C30934D19","revoked":"2026-10-18T09:27:07Z","pem":"-----BEGIN CERTIFICATE-----\nMIIDaDCCAu6gAwIBAgIPWIsuPCu4zaE+GhIJJUMhMAoGCCqGSM49BAMDMFYxCzAJ\nBgNVBAYTAklOMSUwIwYDVQQKDBxlTXVkaHJhIFRlY2hub2xvZ2llcyBMaW1pdGVk\nMSAwHgYDVQQDDBdlbVNpZ24gUm9vdCBUTFMgQ0EgLSBHMzAeFw0yNTA0MzAxNTM1\nMDlaFw00MDA0MjgxODMwMDBaMEAxCzAJBgNVBAYTAlVTMRQwEgYDVQQKDAtlTXVk\naHJhIEluYzEbMBkGA1UEAwwSRU0gRFYgVExTIENBIC0gRzNDMHYwEAYHKoZIzj0C\nAQYFK4EEACIDYgAEOnp4YsjETTJN3WkDOmeCwO/u/kBV5ooSP6A3G6O9kZRRTuFy\npDPjYw8CvRiAN9nlFJ+bd9uUooHfmHsv6oiLdL3+j9pMEJnubKGVZv4+8OX2sJpV\nbMyLpQVh3xsqRB0Bo4IBljCCAZIwHwYDVR0jBBgwFoAU4TqrIXzx401UrtRyt/2L\nWUIgkFQwHQYDVR0OBBYEFK5+EFw8KZbBqEcnBVnx4D3U5QrzMB0GA1UdJQQWMBQG\nCCsGAQUFBwMBBggrBgEFBQcDAjBdBgNVHSAEVjBUMDkGCysGAQQBg44hAQABMCow\nKAYIKwYBBQUHAgEWHGh0dHA6Ly9yZXBvc2l0b3J5LmVtc2lnbi5jb20wDQYLKwYB\nBAGDjiEBAmQwCAYGZ4EMAQIBMHUGCCsGAQUFBwEBBGkwZzAkBggrBgEFBQcwAYYY\naHR0cDovL29jc3AtYy5lbXNpZ24uY29tMD8GCCsGAQUFBzAChjNodHRwOi8vcmVw\nb3NpdG9yeS5lbXNpZ24uY29tL2NlcnRzL0VNRFZUTFNDQUczQy5wN2MwNwYDVR0f\nBDAwLjAsoCqgKIYmaHR0cDovL2NybC5lbXNpZ24uY29tLz9yb290dGxzY2FnMy5j\ncmwwDgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQAwCgYIKoZIzj0E\nAwMDaAAwZQIxAMEN2HWMocbuWdy1d33pH6JpMvP/V/DIS5PtZbv1Q7TXEbxrcyxg\nyuddOJscYDJJlAIwB4sH1BpbScDzkdD4tJBSwrG/1Mx82vb8YaySehNuu1+1oXNd\nAEKwaJ0mVzScy2+6\n-----END CERTIFICATE-----"},{"name":"EM DV TLS CA - G3C","usage":"tls","issuedBy":"AAA Certificate Services","org":"eMudhra Inc","sha256":"62B7F9868263F72F6911FC78CEAF72C1979158B7368BF648683BB2AA39B02E72","revoked":"2026-10-19T10:35:36Z","pem":"-----BEGIN CERTIFICATE-----\nMIIDzzCCAregAwIBAgIRAJHzR/Glt9OZYrleDuTimdEwDQYJKoZIhvcNAQELBQAw\nezELMAkGA1UEBhMCR0IxGzAZBgNVBAgMEkdyZWF0ZXIgTWFuY2hlc3RlcjEQMA4G\nA1UEBwwHU2FsZm9yZDEaMBgGA1UECgwRQ29tb2RvIENBIExpbWl0ZWQxITAfBgNV\nBAMMGEFBQSBDZXJ0aWZpY2F0ZSBTZXJ2aWNlczAeFw0yNTA1MTQwMDAwMDBaFw0y\nODEyMzEyMzU5NTlaMEAxCzAJBgNVBAYTAlVTMRQwEgYDVQQKDAtlTXVkaHJhIElu\nYzEbMBkGA1UEAwwSRU0gRFYgVExTIENBIC0gRzNDMHYwEAYHKoZIzj0CAQYFK4EE\nACIDYgAEOnp4YsjETTJN3WkDOmeCwO/u/kBV5ooSP6A3G6O9kZRRTuFypDPjYw8C\nvRiAN9nlFJ+bd9uUooHfmHsv6oiLdL3+j9pMEJnubKGVZv4+8OX2sJpVbMyLpQVh\n3xsqRB0Bo4IBNTCCATEwHwYDVR0jBBgwFoAUoBEKIz6W8Qfs4q8p74Klf9AwpLQw\nHQYDVR0OBBYEFK5+EFw8KZbBqEcnBVnx4D3U5QrzMA4GA1UdDwEB/wQEAwIBBjAS\nBgNVHRMBAf8ECDAGAQH/AgEAMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEFBQcD\nAjAxBgNVHSAEKjAoMAgGBmeBDAECATANBgsrBgEEAYOOIQEAATANBgsrBgEEAYOO\nIQECZDBDBgNVHR8EPDA6MDigNqA0hjJodHRwOi8vY3JsLmNvbW9kb2NhLmNvbS9B\nQUFDZXJ0aWZpY2F0ZVNlcnZpY2VzLmNybDA0BggrBgEFBQcBAQQoMCYwJAYIKwYB\nBQUHMAGGGGh0dHA6Ly9vY3NwLmNvbW9kb2NhLmNvbTANBgkqhkiG9w0BAQsFAAOC\nAQEAr7b6Mx11TIJgVzHt6EH5qGNWeiiqoMrp8E5/k8s+jvupx1n083pZ5XOzUzND\nwEUe0W4C4FIGUHNQ4XDwqOw0yK42xqm2dvCKgsko2UvDlT0haZVtTCeWMQOe5J/J\nziaMfZwsZNfZ3aaI6XPtWDZtwY8AaNfyaeCpbtm5GcGnyNWk4jSNpbtpo6NjfXuP\nCFOm3rTjJ4zytP7Tso6iMm0L01cYFOlTmoPv4515R2r3SPnKDtijoB/D/vgxzojv\nDafgyG9afX8+laO9NbMMz4sqC1vZx3984i/sBNFiugm3Vvdq5OdJRjuGC1QILIs6\ndg/K3i8VQqRpbfaM9kIlMzZ3dQ==\n-----END CERTIFICATE-----"},{"name":"EM OV TLS CA - G3C","usage":"tls","issuedBy":"emSign Root TLS CA - G3","org":"eMudhra Inc","sha256":"CB6E15165AC802E9B3F993F16C25D41F4E81C21EBDE71AE1B012AC00BF9C7C3F","revoked":"2026-10-18T09:38:46Z","pem":"-----BEGIN CERTIFICATE-----\nMIIDaDCCAu6gAwIBAgIPKWkmwiejoVJjkrGUgqUEMAoGCCqGSM49BAMDMFYxCzAJ\nBgNVBAYTAklOMSUwIwYDVQQKDBxlTXVkaHJhIFRlY2hub2xvZ2llcyBMaW1pdGVk\nMSAwHgYDVQQDDBdlbVNpZ24gUm9vdCBUTFMgQ0EgLSBHMzAeFw0yNTA0MzAxNTM3\nNDFaFw00MDA0MjgxODMwMDBaMEAxCzAJBgNVBAYTAlVTMRQwEgYDVQQKDAtlTXVk\naHJhIEluYzEbMBkGA1UEAwwSRU0gT1YgVExTIENBIC0gRzNDMHYwEAYHKoZIzj0C\nAQYFK4EEACIDYgAEE4JRzVKskpjByKrZdzId65fnCb0LTKCspV3IrVHc/J0ViaFZ\nfjpRIOHv1jHGPhg1ysrimGmmLhYx6KKBgatWYW3EXZGKvAnzqw5jz3kqpNztc4e+\nN7ulaVSfHAKycO1no4IBljCCAZIwHwYDVR0jBBgwFoAU4TqrIXzx401UrtRyt/2L\nWUIgkFQwHQYDVR0OBBYEFDTq6gzryQra+dDF4u2beMmHnhtsMB0GA1UdJQQWMBQG\nCCsGAQUFBwMBBggrBgEFBQcDAjBdBgNVHSAEVjBUMDkGCysGAQQBg44hAQABMCow\nKAYIKwYBBQUHAgEWHGh0dHA6Ly9yZXBvc2l0b3J5LmVtc2lnbi5jb20wDQYLKwYB\nBAGDjiEBAm4wCAYGZ4EMAQICMHUGCCsGAQUFBwEBBGkwZzAkBggrBgEFBQcwAYYY\naHR0cDovL29jc3AtYy5lbXNpZ24uY29tMD8GCCsGAQUFBzAChjNodHRwOi8vcmVw\nb3NpdG9yeS5lbXNpZ24uY29tL2NlcnRzL0VNT1ZUTFNDQUczQy5wN2MwNwYDVR0f\nBDAwLjAsoCqgKIYmaHR0cDovL2NybC5lbXNpZ24uY29tLz9yb290dGxzY2FnMy5j\ncmwwDgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQAwCgYIKoZIzj0E\nAwMDaAAwZQIxAMSZt2xsPeumRdeSMSQ3CbzIZeQ/q7GDCWfeE1Pq+mhgA6gRM44c\nNVF3xJ+wsxJk+wIwFJbaDMokD8Ei6eNOiA8yUMYvfzQyngmrhZQMdPCK1SewrR79\n4rSb9vGqxZzelQth\n-----END CERTIFICATE-----"},{"name":"EM OV TLS CA - G3C","usage":"tls","issuedBy":"AAA Certificate Services","org":"eMudhra Inc","sha256":"7485B51C0ED192878FA1D2F948FB529AE1842CC5086C4B67F7BE5B2039DE9489","revoked":"2026-10-19T10:35:36Z","pem":"-----BEGIN CERTIFICATE-----\nMIIDzzCCAregAwIBAgIRAI1aSBGTnvRH13ERzdmEmukwDQYJKoZIhvcNAQELBQAw\nezELMAkGA1UEBhMCR0IxGzAZBgNVBAgMEkdyZWF0ZXIgTWFuY2hlc3RlcjEQMA4G\nA1UEBwwHU2FsZm9yZDEaMBgGA1UECgwRQ29tb2RvIENBIExpbWl0ZWQxITAfBgNV\nBAMMGEFBQSBDZXJ0aWZpY2F0ZSBTZXJ2aWNlczAeFw0yNTA1MTQwMDAwMDBaFw0y\nODEyMzEyMzU5NTlaMEAxCzAJBgNVBAYTAlVTMRQwEgYDVQQKDAtlTXVkaHJhIElu\nYzEbMBkGA1UEAwwSRU0gT1YgVExTIENBIC0gRzNDMHYwEAYHKoZIzj0CAQYFK4EE\nACIDYgAEE4JRzVKskpjByKrZdzId65fnCb0LTKCspV3IrVHc/J0ViaFZfjpRIOHv\n1jHGPhg1ysrimGmmLhYx6KKBgatWYW3EXZGKvAnzqw5jz3kqpNztc4e+N7ulaVSf\nHAKycO1no4IBNTCCATEwHwYDVR0jBBgwFoAUoBEKIz6W8Qfs4q8p74Klf9AwpLQw\nHQYDVR0OBBYEFDTq6gzryQra+dDF4u2beMmHnhtsMA4GA1UdDwEB/wQEAwIBBjAS\nBgNVHRMBAf8ECDAGAQH/AgEAMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEFBQcD\nAjAxBgNVHSAEKjAoMAgGBmeBDAECAjANBgsrBgEEAYOOIQEAATANBgsrBgEEAYOO\nIQECbjBDBgNVHR8EPDA6MDigNqA0hjJodHRwOi8vY3JsLmNvbW9kb2NhLmNvbS9B\nQUFDZXJ0aWZpY2F0ZVNlcnZpY2VzLmNybDA0BggrBgEFBQcBAQQoMCYwJAYIKwYB\nBQUHMAGGGGh0dHA6Ly9vY3NwLmNvbW9kb2NhLmNvbTANBgkqhkiG9w0BAQsFAAOC\nAQEAHlbhZpjhkPEAQVhPHRtBDaHqiisVD20pQ1TUeSx3l62Qe7NQ0b7vWQy7DN0i\nKOu7BGpP5EnIjvXbz9FhpfPJ4FhKEt3tQ51rqXz2oD8vRaryvExWPobDUz3j7HN6\nOzBsVMIe3PD7AAkpky0x8zMSi/ep5R9OMzybmNptbtppyuB5ytgq+h7lQdRIP+CQ\nTaJX3qTgfMqzntYre5GljmEB5hU2/rSn8zoSU2APkJidlZFpghtgbD4I2VRHZvCw\nFFr/SrFM9pwrgbJNZ1MtyTSVgI5NlNb0aMfLR+/r6jJt3ROeY2yh2QQ2dx+Yqgdb\nuL5ChFWOQU+ErSDnUq7yr+pjBQ==\n-----END CERTIFICATE-----"},{"name":"EM EV TLS CA - G3C","usage":"tls","issuedBy":"emSign Root TLS CA - G3","org":"eMudhra Inc","sha256":"432EC25F0D28DE9006D97BF752F17BBB2CD41F669933FCB072D9A1148D0261F3","revoked":"2026-10-18T09:30:49Z","pem":"-----BEGIN CERTIFICATE-----\nMIIDaDCCAu6gAwIBAgIQAIAJkopkEHYBrwX6LxnxCTAKBggqhkjOPQQDAzBWMQsw\nCQYDVQQGEwJJTjElMCMGA1UECgwcZU11ZGhyYSBUZWNobm9sb2dpZXMgTGltaXRl\nZDEgMB4GA1UEAwwXZW1TaWduIFJvb3QgVExTIENBIC0gRzMwHhcNMjUwNDMwMTUz\nOTMxWhcNNDAwNDI4MTgzMDAwWjBAMQswCQYDVQQGEwJVUzEUMBIGA1UECgwLZU11\nZGhyYSBJbmMxGzAZBgNVBAMMEkVNIEVWIFRMUyBDQSAtIEczQzB2MBAGByqGSM49\nAgEGBSuBBAAiA2IABC1W6Cmm+4LGSkaX2WCvlR6QZ66R+SbTQwbaSKiq63hptqZ+\nbSdCbgRCqgOzbhmI3/Y2UU7hzwf1uks/8qBmRa59MdWGatMao9JG6wsxd+6Zy3Vm\nxRbOdICKZo+R8MR/yqOCAZUwggGRMB8GA1UdIwQYMBaAFOE6qyF88eNNVK7Ucrf9\ni1lCIJBUMB0GA1UdDgQWBBSmJV6AqU2385Z8G8eR35K87kvrXzAdBgNVHSUEFjAU\nBggrBgEFBQcDAQYIKwYBBQUHAwIwXAYDVR0gBFUwUzA5BgsrBgEEAYOOIQEAATAq\nMCgGCCsGAQUFBwIBFhxodHRwOi8vcmVwb3NpdG9yeS5lbXNpZ24uY29tMA0GCysG\nAQQBg44hAQJ4MAcGBWeBDAEBMHUGCCsGAQUFBwEBBGkwZzAkBggrBgEFBQcwAYYY\naHR0cDovL29jc3AtYy5lbXNpZ24uY29tMD8GCCsGAQUFBzAChjNodHRwOi8vcmVw\nb3NpdG9yeS5lbXNpZ24uY29tL2NlcnRzL0VNRVZUTFNDQUczQy5wN2MwNwYDVR0f\nBDAwLjAsoCqgKIYmaHR0cDovL2NybC5lbXNpZ24uY29tLz9yb290dGxzY2FnMy5j\ncmwwDgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQAwCgYIKoZIzj0E\nAwMDaAAwZQIwBy1wTnzH4lXDTy2PD91ysLjvnlVN3JbJmc1BIMEU8TOLkYVHibMc\n9HeyonikFSfmAjEA6uE3QRxlrZTz/1/lXPTEMUhoauAtycagtlNFp79kjhvNa2/f\nAal1GNxsOutLnr0Y\n-----END CERTIFICATE-----"},{"name":"EM EV TLS CA - G3C","usage":"tls","issuedBy":"AAA Certificate Services","org":"eMudhra Inc","sha256":"FD9D5C2DBBD4995AB69B8D50C439D9527B00529199C2FD01B2174EB58F07021F","revoked":"2026-10-19T10:35:36Z","pem":"-----BEGIN CERTIFICATE-----\nMIIDzTCCArWgAwIBAgIQBfB4dS3s56G7hZXTAxZxcTANBgkqhkiG9w0BAQsFADB7\nMQswCQYDVQQGEwJHQjEbMBkGA1UECAwSR3JlYXRlciBNYW5jaGVzdGVyMRAwDgYD\nVQQHDAdTYWxmb3JkMRowGAYDVQQKDBFDb21vZG8gQ0EgTGltaXRlZDEhMB8GA1UE\nAwwYQUFBIENlcnRpZmljYXRlIFNlcnZpY2VzMB4XDTI1MDUxNDAwMDAwMFoXDTI4\nMTIzMTIzNTk1OVowQDELMAkGA1UEBhMCVVMxFDASBgNVBAoMC2VNdWRocmEgSW5j\nMRswGQYDVQQDDBJFTSBFViBUTFMgQ0EgLSBHM0MwdjAQBgcqhkjOPQIBBgUrgQQA\nIgNiAAQtVugppvuCxkpGl9lgr5UekGeukfkm00MG2kioqut4abamfm0nQm4EQqoD\ns24ZiN/2NlFO4c8H9bpLP/KgZkWufTHVhmrTGqPSRusLMXfumct1ZsUWznSAimaP\nkfDEf8qjggE0MIIBMDAfBgNVHSMEGDAWgBSgEQojPpbxB+zirynvgqV/0DCktDAd\nBgNVHQ4EFgQUpiVegKlNt/OWfBvHkd+SvO5L618wDgYDVR0PAQH/BAQDAgEGMBIG\nA1UdEwEB/wQIMAYBAf8CAQAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMC\nMDAGA1UdIAQpMCcwBwYFZ4EMAQEwDQYLKwYBBAGDjiEBAAEwDQYLKwYBBAGDjiEB\nAngwQwYDVR0fBDwwOjA4oDagNIYyaHR0cDovL2NybC5jb21vZG9jYS5jb20vQUFB\nQ2VydGlmaWNhdGVTZXJ2aWNlcy5jcmwwNAYIKwYBBQUHAQEEKDAmMCQGCCsGAQUF\nBzABhhhodHRwOi8vb2NzcC5jb21vZG9jYS5jb20wDQYJKoZIhvcNAQELBQADggEB\nAIFfHiaMSjnrdZygRYV4ekRBmG7ybcFk4hGQWMMyMFi0cAEk2+dGfz5bl8IaIbLq\nz+uVJzhOgVEX7WqIfgbWfFsfPYHYjPHBmy7SlZ3BwA86IQ6qF/etpX2/qL9A5yRN\nN3nVowUpaqV6H3aCpkAh3wR2ZNkvAbLDvPz3J0l+sEWjWv+ZISOV4R+hXDTdPXV0\n1lKxnbwqEsdo/sE2QkCDKwFrZh/0uKjWspydJj+jSaDLTrGNx50Dgmn7VEcD1ZI5\nFXjknVUiO25YlmS1dtVZSBbyUKSjlrP/yDwPcZunoAsmCAAtCKsFLviLaymzvsKI\neSSDGxpSySp2VCxompGDk8g=\n-----END CERTIFICATE-----"},{"name":"EM OV CS CA - G3B","usage":"cs","issuedBy":"emSign Root CS CA - G3","org":"eMudhra BV","sha256":"9E39DE2881273ACC225A149C72BA3E0F51424963669AB633EE1DC7DF5DB067B4","revoked":"2026-10-18T09:33:37Z","pem":"-----BEGIN CERTIFICATE-----\nMIIDWzCCAuCgAwIBAgIPeBiTP4+FtGGaKzX7qD0KMAoGCCqGSM49BAMDMFUxCzAJ\nBgNVBAYTAklOMSUwIwYDVQQKDBxlTXVkaHJhIFRlY2hub2xvZ2llcyBMaW1pdGVk\nMR8wHQYDVQQDDBZlbVNpZ24gUm9vdCBDUyBDQSAtIEczMB4XDTI1MDQzMDE2MDgy\nN1oXDTQwMDQyODE4MzAwMFowPjELMAkGA1UEBhMCTkwxEzARBgNVBAoMCmVNdWRo\ncmEgQlYxGjAYBgNVBAMMEUVNIE9WIENTIENBIC0gRzNCMHYwEAYHKoZIzj0CAQYF\nK4EEACIDYgAEqrsPsGZqz88B+tUr/P1MK/LLPDSX3nOVDlgZth/mlQmHQcjEkUOb\nNKBDHK/+W/m0wcjorgAB+fTcitgsWfNjnpbNbD1NsM7+wmw9YlF7N3YTcnQ/jord\nd7EAZPKr5eBQo4IBizCCAYcwHwYDVR0jBBgwFoAUaHQD+IXKjVRQVx0W4MjeRQ2r\nzS0wHQYDVR0OBBYEFHn66OzP2w11jaRY1p+27dx8Sd7mMBMGA1UdJQQMMAoGCCsG\nAQUFBwMDMF4GA1UdIARXMFUwOQYLKwYBBAGDjiEBAAEwKjAoBggrBgEFBQcCARYc\naHR0cDovL3JlcG9zaXRvcnkuZW1zaWduLmNvbTAOBgwrBgEEAYOOIQECgUgwCAYG\nZ4EMAQQBMHQGCCsGAQUFBwEBBGgwZjAkBggrBgEFBQcwAYYYaHR0cDovL29jc3At\nYi5lbXNpZ24uY29tMD4GCCsGAQUFBzAChjJodHRwOi8vcmVwb3NpdG9yeS5lbXNp\nZ24uY29tL2NlcnRzL0VNT1ZDU0NBRzNCLnA3YzA2BgNVHR8ELzAtMCugKaAnhiVo\ndHRwOi8vY3JsLmVtc2lnbi5jb20vP3Jvb3Rjc2NhZzMuY3JsMA4GA1UdDwEB/wQE\nAwIBBjASBgNVHRMBAf8ECDAGAQH/AgEAMAoGCCqGSM49BAMDA2kAMGYCMQC/zr03\nYEELsNKqzUtH2dVFi4BaKFdyrr/6G1dIWp8KAVgsw2/u4lyyboUDaC9jDvICMQC9\nHTxku84tNX9dmHOtH7aC2Nu/JM0jTf6KjZAvovCJzzv1IFWSZpVLZibynMLXOrM=\n-----END CERTIFICATE-----"},{"name":"EM OV CS CA - G3B","usage":"cs","issuedBy":"AAA Certificate Services","org":"eMudhra BV","sha256":"A496E23AC0CAB8155FC9B117B97EAE368EFCBB9041AEC8804D5A308D2D01C2D8","revoked":"2026-10-19T10:35:36Z","pem":"-----BEGIN CERTIFICATE-----\nMIIDwzCCAqugAwIBAgIQQeMrc6wYXWzg10gLrPhOaTANBgkqhkiG9w0BAQsFADB7\nMQswCQYDVQQGEwJHQjEbMBkGA1UECAwSR3JlYXRlciBNYW5jaGVzdGVyMRAwDgYD\nVQQHDAdTYWxmb3JkMRowGAYDVQQKDBFDb21vZG8gQ0EgTGltaXRlZDEhMB8GA1UE\nAwwYQUFBIENlcnRpZmljYXRlIFNlcnZpY2VzMB4XDTI1MDUxNDAwMDAwMFoXDTI4\nMTIzMTIzNTk1OVowPjELMAkGA1UEBhMCTkwxEzARBgNVBAoMCmVNdWRocmEgQlYx\nGjAYBgNVBAMMEUVNIE9WIENTIENBIC0gRzNCMHYwEAYHKoZIzj0CAQYFK4EEACID\nYgAEqrsPsGZqz88B+tUr/P1MK/LLPDSX3nOVDlgZth/mlQmHQcjEkUObNKBDHK/+\nW/m0wcjorgAB+fTcitgsWfNjnpbNbD1NsM7+wmw9YlF7N3YTcnQ/jordd7EAZPKr\n5eBQo4IBLDCCASgwHwYDVR0jBBgwFoAUoBEKIz6W8Qfs4q8p74Klf9AwpLQwHQYD\nVR0OBBYEFHn66OzP2w11jaRY1p+27dx8Sd7mMA4GA1UdDwEB/wQEAwIBBjASBgNV\nHRMBAf8ECDAGAQH/AgEAMBMGA1UdJQQMMAoGCCsGAQUFBwMDMDIGA1UdIAQrMCkw\nCAYGZ4EMAQQBMA0GCysGAQQBg44hAQABMA4GDCsGAQQBg44hAQKBSDBDBgNVHR8E\nPDA6MDigNqA0hjJodHRwOi8vY3JsLmNvbW9kb2NhLmNvbS9BQUFDZXJ0aWZpY2F0\nZVNlcnZpY2VzLmNybDA0BggrBgEFBQcBAQQoMCYwJAYIKwYBBQUHMAGGGGh0dHA6\nLy9vY3NwLmNvbW9kb2NhLmNvbTANBgkqhkiG9w0BAQsFAAOCAQEAIh0OzWsdBYhY\n7+yxPGyosRL+uUSN6/Mrd30fBuougs5FVWQ3cRgLhImnUUgXADY9buugWhMmfT3c\nyU5T1MFXZXClCILm5mfg+oqm/ikUWJl3Ayf2GvYf2O++6vzqvkn418nI5Lpdt0O7\nLi524YS/3CZHDA+zZQ7rrHpZXgQ9Hmp8AUQ4FneaGjNanFoYxiZxwCyW5z4u7AoK\n0bmOVqKtcDFoVNz5++G9TYDJdhWOXmKKgzqRo1MK0PjazNT7MGHqknP93SqMVJ1g\nmX/qNWxYteAjlvFanQxBNX/+TRxDjuFsEHO/7BvqSpIIck0UEEfizhN8zNpWLbcl\nEqVgl0g39A==\n-----END CERTIFICATE-----"},{"name":"EM OV CS CA - G3C","usage":"cs","issuedBy":"emSign Root CS CA - G3","org":"eMudhra Inc","sha256":"4B2460A466F95FD40113BCDCCA2CEB29B3B093921DE45474DA7DF48874C630B1","revoked":"2026-10-18T09:35:24Z","pem":"-----BEGIN CERTIFICATE-----\nMIIDWzCCAuGgAwIBAgIPVEt/kiwxriIKSpIpFvbmMAoGCCqGSM49BAMDMFUxCzAJ\nBgNVBAYTAklOMSUwIwYDVQQKDBxlTXVkaHJhIFRlY2hub2xvZ2llcyBMaW1pdGVk\nMR8wHQYDVQQDDBZlbVNpZ24gUm9vdCBDUyBDQSAtIEczMB4XDTI1MDQzMDE2Mzg0\nMFoXDTQwMDQyODE4MzAwMFowPzELMAkGA1UEBhMCVVMxFDASBgNVBAoMC2VNdWRo\ncmEgSW5jMRowGAYDVQQDDBFFTSBPViBDUyBDQSAtIEczQzB2MBAGByqGSM49AgEG\nBSuBBAAiA2IABLnw4GNHAqacpqrdRDz9YsQbm6SyCSRpfXl052kaEm+5avs+NML9\nO8X0gwYfJl3CpYQ2NHMjUQQ2so8E84YjYwZ5gOJQPgJTLWVGI1pxZaJZoe9Jb3Qb\nX97neHII5Lj676OCAYswggGHMB8GA1UdIwQYMBaAFGh0A/iFyo1UUFcdFuDI3kUN\nq80tMB0GA1UdDgQWBBTub3MpjW+/p7Mbw5U09hVWRHhmtzATBgNVHSUEDDAKBggr\nBgEFBQcDAzBeBgNVHSAEVzBVMDkGCysGAQQBg44hAQABMCowKAYIKwYBBQUHAgEW\nHGh0dHA6Ly9yZXBvc2l0b3J5LmVtc2lnbi5jb20wDgYMKwYBBAGDjiEBAoFIMAgG\nBmeBDAEEATB0BggrBgEFBQcBAQRoMGYwJAYIKwYBBQUHMAGGGGh0dHA6Ly9vY3Nw\nLWMuZW1zaWduLmNvbTA+BggrBgEFBQcwAoYyaHR0cDovL3JlcG9zaXRvcnkuZW1z\naWduLmNvbS9jZXJ0cy9FTU9WQ1NDQUczQy5wN2MwNgYDVR0fBC8wLTAroCmgJ4Yl\naHR0cDovL2NybC5lbXNpZ24uY29tLz9yb290Y3NjYWczLmNybDAOBgNVHQ8BAf8E\nBAMCAQYwEgYDVR0TAQH/BAgwBgEB/wIBADAKBggqhkjOPQQDAwNoADBlAjEA8yPg\n8sntOhLwV2QXJ5LEaKSpo/fnE3uOgTadK73fDhyjiqr0Io9GVuQTYqBPbQ2TAjBg\neuApmBS486+iei03lRrp139dPw6k28jjGNvWsAU7A1N86J1zPJVDEyVH+nMAWC0=\n-----END CERTIFICATE-----"},{"name":"EM OV CS CA - G3C","usage":"cs","issuedBy":"AAA Certificate Services","org":"eMudhra Inc","sha256":"84112972B8E59D14560AE7E7119654474AAD119990CF3722BFC1E3B91615E1FD","revoked":"2026-10-19T10:35:36Z","pem":"-----BEGIN CERTIFICATE-----\nMIIDxTCCAq2gAwIBAgIRANal72E7OQ8y75zfNJ93KEEwDQYJKoZIhvcNAQELBQAw\nezELMAkGA1UEBhMCR0IxGzAZBgNVBAgMEkdyZWF0ZXIgTWFuY2hlc3RlcjEQMA4G\nA1UEBwwHU2FsZm9yZDEaMBgGA1UECgwRQ29tb2RvIENBIExpbWl0ZWQxITAfBgNV\nBAMMGEFBQSBDZXJ0aWZpY2F0ZSBTZXJ2aWNlczAeFw0yNTA1MTQwMDAwMDBaFw0y\nODEyMzEyMzU5NTlaMD8xCzAJBgNVBAYTAlVTMRQwEgYDVQQKDAtlTXVkaHJhIElu\nYzEaMBgGA1UEAwwRRU0gT1YgQ1MgQ0EgLSBHM0MwdjAQBgcqhkjOPQIBBgUrgQQA\nIgNiAAS58OBjRwKmnKaq3UQ8/WLEG5uksgkkaX15dOdpGhJvuWr7PjTC/TvF9IMG\nHyZdwqWENjRzI1EENrKPBPOGI2MGeYDiUD4CUy1lRiNacWWiWaHvSW90G1/e53hy\nCOS4+u+jggEsMIIBKDAfBgNVHSMEGDAWgBSgEQojPpbxB+zirynvgqV/0DCktDAd\nBgNVHQ4EFgQU7m9zKY1vv6ezG8OVNPYVVkR4ZrcwDgYDVR0PAQH/BAQDAgEGMBIG\nA1UdEwEB/wQIMAYBAf8CAQAwEwYDVR0lBAwwCgYIKwYBBQUHAwMwMgYDVR0gBCsw\nKTAIBgZngQwBBAEwDQYLKwYBBAGDjiEBAAEwDgYMKwYBBAGDjiEBAoFIMEMGA1Ud\nHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwuY29tb2RvY2EuY29tL0FBQUNlcnRpZmlj\nYXRlU2VydmljZXMuY3JsMDQGCCsGAQUFBwEBBCgwJjAkBggrBgEFBQcwAYYYaHR0\ncDovL29jc3AuY29tb2RvY2EuY29tMA0GCSqGSIb3DQEBCwUAA4IBAQBgGbZ+NDkn\n2Fr5dCVs/51+6cT5iEPP1stglX4TI2UaNh9LmPdltxXw3crV8gK5L8i+d+ScGibF\ny0obtBHNTldXDgLnAHIzY3n+pceyKj7O2ae9CYnyuu5RBifeI3XYKowWE+oXnVGF\nOy0CvCJ/JsdP6aYgoCa9hGnAYicYQQL6MOMQZ5PuhcSM8t4giIzrpgrEkUP93GYE\nemDG5Z8BYwKs80lLeQNBnwg/VHJ3iEF/o84RXYwrlrKqJ+33C094o6LNikMJCqOK\n/WYHZSR8Xyhf8GXFAj5pZuI6Bcpug2V/E7i42j8OBhc25aNYDqK+B0qmb90sjNUB\ng3tJeSIb/599\n-----END CERTIFICATE-----"}];
+
+/* ===== curve math (BigInt) ===== */
+const CURVES = {
+  "P-384": {
+    p: 2n**384n - 2n**128n - 2n**96n + 2n**32n - 1n,
+    b: 0xb3312fa7e23ee7e4988e056be3f82d19181d9c6efe8141120314088f5013875ac656398d8a2ed19d2a85c8edd3ec2aefn,
+    n: 0xffffffffffffffffffffffffffffffffffffffffffffffffc7634d81f4372ddf581a0db248b0a77aecec196accc52973n,
+    G: [0xaa87ca22be8b05378eb1c71ef320ad746e1d3b628ba79b9859f741e082542a385502f25dbf55296c3a545e3872760ab7n,
+        0x3617de4a96262c6f5d9e98bf9292dc29f8f41dbd289a147ce9da3113b5f0b8c00a60b1ce1d7e819d7a431d7c90ea0e5fn],
+    len: 48
+  },
+  "P-256": {
+    p: 2n**256n - 2n**224n + 2n**192n + 2n**96n - 1n,
+    b: 0x5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604bn,
+    n: 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551n,
+    G: [0x6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296n,
+        0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5n],
+    len: 32
+  }
+};
+const md = (a, p) => { a %= p; return a < 0n ? a + p : a; };
+function inv(a, p){ let r0 = md(a, p), r1 = p, s0 = 1n, s1 = 0n;
   while (r1) { const q = r0 / r1; [r0, r1] = [r1, r0 - q*r1]; [s0, s1] = [s1, s0 - q*s1]; }
-  return md(s0); }
-function add(p, q){ if (!p) return q; if (!q) return p;
-  const [x1,y1] = p, [x2,y2] = q; let l;
-  if (x1 === x2) { if (md(y1 + y2) === 0n) return null; l = md((3n*x1*x1 + A) * inv(2n*y1)); }
-  else l = md((y2 - y1) * inv(x2 - x1));
-  const x3 = md(l*l - x1 - x2); return [x3, md(l*(x1 - x3) - y1)]; }
-function mul(k, p){ let r = null, a = p; while (k > 0n) { if (k & 1n) r = add(r, a); a = add(a, a); k >>= 1n; } return r; }
-/* ===== end math ===== */
+  return md(s0, p); }
+function modpow(b, e, p){ let r = 1n; b = md(b, p); while (e > 0n) { if (e & 1n) r = r*b % p; b = b*b % p; e >>= 1n; } return r; }
+function addA(P, Q, c){ if (!P) return Q; if (!Q) return P; const p = c.p;
+  const [x1,y1] = P, [x2,y2] = Q; let l;
+  if (x1 === x2) { if (md(y1 + y2, p) === 0n) return null; l = md((3n*x1*x1 - 3n) * inv(2n*y1, p), p); }
+  else l = md((y2 - y1) * inv(x2 - x1, p), p);
+  const x3 = md(l*l - x1 - x2, p); return [x3, md(l*(x1 - x3) - y1, p)]; }
+function mulA(k, P, c){ let r = null, a = P; while (k > 0n) { if (k & 1n) r = addA(r, a, c); a = addA(a, a, c); k >>= 1n; } return r; }
+/* Jacobian mixed addition: (X,Y,Z) + affine (x2,y2) */
+function maddJ(X1, Y1, Z1, x2, y2, p){
+  const Z1Z1 = Z1*Z1 % p, U2 = x2*Z1Z1 % p, S2 = y2*Z1 % p * Z1Z1 % p;
+  const H = md(U2 - X1, p), R = md(S2 - Y1, p);
+  const HH = H*H % p, HHH = HH*H % p, V = X1*HH % p;
+  const X3 = md(R*R - HHH - 2n*V, p);
+  const Y3 = md(R*(V - X3) - Y1*HHH, p);
+  return [X3, Y3, Z1*H % p];
+}
+/* search k = 1..limit for k·G == Q, without inversions; returns k or 0 */
+function smallScalarSearch(Q, c, limit, onProgress){
+  return new Promise(resolve => {
+    const p = c.p, [qx, qy] = Q, [gx, gy] = c.G;
+    if (qx === gx && qy === gy) return resolve(1);
+    const G2 = addA(c.G, c.G, c);
+    let X = G2[0], Y = G2[1], Z = 1n, k = 2;
+    const chunk = () => {
+      const stop = Math.min(limit, k + 4095);
+      for (; k <= stop; k++) {
+        const ZZ = Z*Z % p;
+        if (X === qx*ZZ % p && Y === qy*ZZ % p * Z % p) return resolve(k);
+        [X, Y, Z] = maddJ(X, Y, Z, gx, gy, p);
+      }
+      if (onProgress) onProgress(Math.min(1, k / limit));
+      if (k > limit) return resolve(0);
+      setTimeout(chunk, 0);
+    };
+    chunk();
+  });
+}
 
+/* ===== minimal DER / X.509 reader ===== */
+function b64ToBytes(s){ const bin = atob(s); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
+function pemToDers(text){ const out = []; const re = /-----BEGIN CERTIFICATE-----([\s\S]*?)-----END CERTIFICATE-----/g; let m;
+  while ((m = re.exec(text))) out.push(b64ToBytes(m[1].replace(/[^A-Za-z0-9+/=]/g, ""))); return out; }
+function tlv(b, off){ if (off + 2 > b.length) throw new Error("truncated DER");
+  const tag = b[off]; let len = b[off+1], hdr = 2;
+  if (len & 0x80) { const n = len & 0x7f; if (n < 1 || n > 4) throw new Error("bad DER length"); len = 0; for (let i = 0; i < n; i++) len = len*256 + b[off+2+i]; hdr = 2 + n; }
+  const t = {tag, v: off + hdr, end: off + hdr + len}; if (t.end > b.length) throw new Error("truncated DER"); return t; }
+function kids(b, t){ const out = []; let o = t.v; while (o < t.end) { const k = tlv(b, o); out.push(k); o = k.end; } return out; }
+const hex = (b, s, e) => Array.from(b.subarray(s, e), x => x.toString(16).padStart(2, "0")).join("");
+const OID = { ec: "2a8648ce3d0201", p384: "2b81040022", p256: "2a8648ce3d030107", rsa: "2a864886f70d010101", ed25519: "2b6570", cn: "550403" };
+function nameCN(b, t){ let cn = "", all = [];
+  for (const set of kids(b, t)) for (const atv of kids(b, set)) { const [o, v] = kids(b, atv);
+    const val = new TextDecoder().decode(b.subarray(v.v, v.end)); all.push(val); if (hex(b, o.v, o.end) === OID.cn) cn = val; }
+  return cn || all.join(", ") || "(no name)"; }
+function parseCert(der){
+  const cert = tlv(der, 0); if (cert.tag !== 0x30) throw new Error("not a certificate");
+  const [tbs] = kids(der, cert); const t = kids(der, tbs); let i = t[0].tag === 0xa0 ? 1 : 0;
+  const serial = hex(der, t[i].v, t[i].end).replace(/^00/, "").toUpperCase();
+  const issuer = nameCN(der, t[i+2]), subject = nameCN(der, t[i+4]);
+  const [alg, bits] = kids(der, t[i+5]); const ak = kids(der, alg);
+  const algOid = hex(der, ak[0].v, ak[0].end), param = ak[1] ? hex(der, ak[1].v, ak[1].end) : "";
+  const out = {der, serial, issuer, subject, keyType: "unknown"};
+  if (algOid === OID.rsa) out.keyType = "RSA";
+  else if (algOid === OID.ed25519) out.keyType = "Ed25519";
+  else if (algOid === OID.ec) {
+    const curve = param === OID.p384 ? "P-384" : param === OID.p256 ? "P-256" : null;
+    out.keyType = curve ? "EC " + curve : "EC (other curve)";
+    if (curve) { const c = CURVES[curve]; const pt = der.subarray(bits.v + 1, bits.end);
+      const big = (s, e) => BigInt("0x" + hex(pt, s, e));
+      if (pt[0] === 4 && pt.length === 1 + 2*c.len) out.Q = [big(1, 1 + c.len), big(1 + c.len, pt.length)];
+      else if ((pt[0] === 2 || pt[0] === 3) && pt.length === 1 + c.len) { const x = big(1, pt.length);
+        let y = modpow(md(x*x*x - 3n*x + c.b, c.p), (c.p + 1n) / 4n, c.p); if (Number(y & 1n) !== (pt[0] & 1)) y = c.p - y; out.Q = [x, y]; }
+      out.curve = curve; }
+  }
+  return out; }
+async function sha256hex(der){ try { const h = await crypto.subtle.digest("SHA-256", der); return hex(new Uint8Array(h), 0, 32).toUpperCase(); } catch (e) { return null; } }
+const hx = (v, len) => v.toString(16).padStart(len*2, "0");
+
+/* ===== Episode 3: key table + console ===== */
 (function(){
-  const targets = [
-    {label:"OV TLS G3C", d:4n},{label:"EV TLS G3C", d:56n},{label:"OV CS G3B", d:66n},{label:"EV TLS G3B", d:115n},
-    {label:"OV TLS G3B", d:155n},{label:"DV TLS G3B", d:156n},{label:"DV TLS G3C", d:230n},{label:"OV CS G3C", d:237n},
-    {label:"Honest random key", d:null}
-  ];
-  const keysEl = document.getElementById("keys"), qbox = document.getElementById("qbox"),
-        runBtn = document.getElementById("run"), log = document.getElementById("log"), result = document.getElementById("result");
+  const groups = []; // one entry per intermediate: {name, usage, org, E, A}
+  for (const c of CERTS) { let g = groups.find(x => x.name === c.name);
+    if (!g) { g = {name: c.name, usage: c.usage, org: c.org}; groups.push(g); }
+    g[c.issuedBy === "AAA Certificate Services" ? "A" : "E"] = c; }
+  groups.sort((a, b) => (a.usage === b.usage ? 0 : a.usage === "tls" ? -1 : 1) || a.name.localeCompare(b.name));
+
+  const tbody = document.getElementById("ktable");
+  const P384 = CURVES["P-384"];
+  (async () => {
+    for (const g of groups) {
+      const pe = parseCert(pemToDers(g.E.pem)[0]), pa = parseCert(pemToDers(g.A.pem)[0]);
+      const d = await smallScalarSearch(pe.Q, P384, 255); const same = pa.Q[0] === pe.Q[0] && pa.Q[1] === pe.Q[1];
+      const tr = document.createElement("tr");
+      const td = (txt, cls) => { const e = document.createElement("td"); if (cls) e.className = cls; if (txt instanceof Node) e.appendChild(txt); else e.textContent = txt; return e; };
+      const pill = document.createElement("span"); pill.className = "pill " + (g.usage === "tls" ? "tls" : "cs"); pill.textContent = g.usage === "tls" ? "TLS · " + g.name.split(" ")[1] : "Code signing";
+      const links = document.createElement("span");
+      [["eMudhra", g.E], ["Sectigo", g.A]].forEach(([lab, c], i) => { const a = document.createElement("a"); a.href = "https://crt.sh/?sha256=" + c.sha256; a.target = "_blank"; a.rel = "noopener"; a.textContent = lab; if (i) links.append(" · "); links.append(a); });
+      tr.append(td(g.name.replace(" - ", " – ")), td(pill), td(g.org), td(links), td(d ? String(d) + (same ? "" : " ?") : "?", "num"));
+      tbody.appendChild(tr);
+    }
+  })();
+
+  const keysEl = document.getElementById("keys"), info = document.getElementById("cinfo"), runBtn = document.getElementById("run"),
+        log = document.getElementById("log"), result = document.getElementById("result"),
+        copyE = document.getElementById("copyE"), copyA = document.getElementById("copyA");
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let cur = null, Q = null, running = false;
-  const hx = v => v.toString(16).padStart(96, "0");
+  let sel = 0, copy = "E", target = null, running = false;
+  const items = groups.map(g => ({label: g.name.replace("EM ", "").replace(" CA - ", " "), g})).concat([{label: "Control: random key", g: null}]);
 
-  function randomD(){ const b = new Uint8Array(56); crypto.getRandomValues(b);
-    let v = 0n; for (const x of b) v = (v << 8n) | BigInt(x); return v % (N - 1n) + 1n; }
-
-  function select(i){
+  function randomD(){ const b = new Uint8Array(56); crypto.getRandomValues(b); let v = 0n; for (const x of b) v = (v << 8n) | BigInt(x); return v % (P384.n - 1n) + 1n; }
+  function row(k, v, link){ const dt = document.createElement("dt"); dt.textContent = k; const dd = document.createElement("dd");
+    if (link) { const a = document.createElement("a"); a.href = link; a.target = "_blank"; a.rel = "noopener"; a.textContent = v; dd.appendChild(a); } else dd.textContent = v;
+    info.append(dt, dd); }
+  async function choose(){
     if (running) return;
-    cur = targets[i]; const d = cur.d ?? randomD(); Q = mul(d, G);
-    [...keysEl.children].forEach((b, j) => b.setAttribute("aria-pressed", String(j === i)));
-    const x = hx(Q[0]);
-    qbox.innerHTML = "target: " + cur.label + "<br>Q.x = <b>" + x.slice(0,24) + "</b>" + x.slice(24) ;
-    log.textContent = ""; result.textContent = ""; result.className = "result";
+    [...keysEl.children].forEach((b, j) => b.setAttribute("aria-pressed", String(j === sel)));
+    copyE.setAttribute("aria-pressed", String(copy === "E")); copyA.setAttribute("aria-pressed", String(copy === "A"));
+    const it = items[sel]; info.replaceChildren(); log.textContent = ""; result.textContent = ""; result.className = "result";
+    copyE.disabled = copyA.disabled = !it.g;
+    if (!it.g) { const Q = mulA(randomD(), P384.G, P384); target = {Q, label: "control"};
+      row("source", "freshly generated key, no certificate"); row("Q.x", hx(Q[0], 48).slice(0, 32) + "…"); return; }
+    const c = it.g[copy], pc = parseCert(pemToDers(c.pem)[0]); target = {Q: pc.Q, label: it.label};
+    row("subject", pc.subject); row("issuer", pc.issuer); row("serial", pc.serial);
+    row("revoked", c.revoked.replace("T", " ").replace("Z", " UTC"));
+    const fp = await sha256hex(pc.der);
+    row("sha-256", fp ? fp.slice(0, 32) + "… ↗ crt.sh" : "(SHA-256 unavailable here) ↗ crt.sh", "https://crt.sh/?sha256=" + (fp || c.sha256));
+    row("Q.x", hx(pc.Q[0], 48).slice(0, 32) + "…"); row("Q.y", hx(pc.Q[1], 48).slice(0, 32) + "…");
   }
-  targets.forEach((t, i) => { const b = document.createElement("button"); b.type = "button";
-    b.textContent = t.d === null ? "◇ " + t.label : t.label; if (t.d === null) b.className = "honest";
-    b.addEventListener("click", () => select(i)); keysEl.appendChild(b); });
+  items.forEach((t, i) => { const b = document.createElement("button"); b.type = "button"; b.textContent = t.g ? t.label : "◇ " + t.label;
+    if (!t.g) b.className = "honest"; b.addEventListener("click", () => { sel = i; choose(); }); keysEl.appendChild(b); });
+  copyE.addEventListener("click", () => { copy = "E"; choose(); });
+  copyA.addEventListener("click", () => { copy = "A"; choose(); });
 
-  function line(k, pt, hit){
-    const s = "try d=" + String(k).padStart(3, " ") + "  x=" + hx(pt[0]).slice(0, 16) + "…  " + (hit ? "MATCH ★" : "✗");
-    const row = document.createElement("div"); row.textContent = s; if (hit) row.className = "hit";
-    log.appendChild(row); while (log.childElementCount > 7) log.firstChild.remove();
-  }
-
+  function line(text, cls){ const r = document.createElement("div"); r.textContent = text; if (cls) r.className = cls; log.appendChild(r); while (log.childElementCount > 7) log.firstChild.remove(); }
   runBtn.addEventListener("click", () => {
-    if (running || !Q) return;
-    // time the pure search first
-    const t0 = performance.now(); let pt = G, found = 0;
-    for (let k = 1; k <= 255; k++) { if (pt[0] === Q[0] && pt[1] === Q[1]) { found = k; break; } pt = add(pt, G); }
+    if (running || !target) return;
+    const Q = target.Q, t0 = performance.now(); let pt = P384.G, found = 0;
+    for (let k = 1; k <= 255; k++) { if (pt[0] === Q[0] && pt[1] === Q[1]) { found = k; break; } pt = addA(pt, P384.G, P384); }
     const ms = performance.now() - t0, last = found || 255;
     running = true; runBtn.disabled = true; log.textContent = ""; result.textContent = ""; result.className = "result";
-    let k = 1; pt = G;
+    let k = 1; pt = P384.G;
     const step = () => {
       const batch = reduce ? last : 3;
-      for (let i = 0; i < batch && k <= last; i++, k++) { line(k, pt, k === found); pt = add(pt, G); }
+      for (let i = 0; i < batch && k <= last; i++, k++) { line("try d=" + String(k).padStart(3, " ") + "  x=" + hx(pt[0], 48).slice(0, 14) + "…  " + (k === found ? "MATCH ★" : "✗"), k === found ? "hit" : ""); pt = addA(pt, P384.G, P384); }
       if (k <= last) { requestAnimationFrame(step); return; }
+      if (found) {
+        const v = mulA(BigInt(found), P384.G, P384), okx = v[0] === Q[0], oky = v[1] === Q[1];
+        line("verify: d·G by double-and-add", "ok");
+        line("  x " + (okx ? "matches ✓" : "MISMATCH ✗") + "   y " + (oky ? "matches ✓" : "MISMATCH ✗"), "ok");
+        result.textContent = "KEY RECOVERED ★ d = " + found + " · d·G = Q " + (okx && oky ? "verified" : "FAILED") + " · " + ms.toFixed(1) + " ms of math";
+      } else { result.className = "result fail"; result.textContent = "No match in 255 tries. Keyspace ≈ 3.9 × 10^115; best known attack ≈ 2^192 operations."; }
       running = false; runBtn.disabled = false;
-      if (found) result.textContent = "KEY RECOVERED ★ d = " + found + " after " + found + " tries (" + ms.toFixed(1) + " ms of math)";
-      else { result.className = "result fail";
-        result.textContent = "No match in 255 tries. Keyspace ≈ 3.9 × 10^115; best known attack ≈ 2^192 operations."; }
     };
     step();
   });
+  choose();
 
-  select(0);
+  /* PEM importer */
+  const pin = document.getElementById("pem-in"), pfile = document.getElementById("pem-file"), plimit = document.getElementById("pem-limit"),
+        prun = document.getElementById("pem-run"), pout = document.getElementById("pem-out"), prog = document.getElementById("pem-prog");
+  let fileDer = null;
+  pfile.addEventListener("change", async () => { const f = pfile.files && pfile.files[0]; fileDer = null; if (!f) return;
+    const buf = new Uint8Array(await f.arrayBuffer());
+    if (buf[0] === 0x30) { fileDer = buf; pin.value = "(binary DER certificate loaded: " + f.name + ")"; }
+    else pin.value = new TextDecoder().decode(buf); });
+  pin.addEventListener("input", () => { fileDer = null; });
+  document.getElementById("pem-sample").addEventListener("click", () => { fileDer = null; const g = groups.find(x => x.name === "EM OV TLS CA - G3C") || groups[0]; pin.value = g.A.pem; });
+  function res(kind, tag, title, sub){ const d = document.createElement("div"); d.className = "res " + kind;
+    const a = document.createElement("span"); a.className = "tag2"; a.textContent = tag;
+    const b = document.createElement("span"); b.className = "rt"; b.textContent = title;
+    const c = document.createElement("span"); c.className = "rs"; c.textContent = sub; d.append(a, b, c); pout.appendChild(d); return d; }
+  prun.addEventListener("click", async () => {
+    pout.replaceChildren(); prog.style.width = "0";
+    const ders = fileDer ? [fileDer] : pemToDers(pin.value);
+    if (!ders.length) { res("na", "NOTHING TO TEST", "No certificate found", "Paste text that includes -----BEGIN CERTIFICATE----- and -----END CERTIFICATE-----, or load a certificate file."); return; }
+    prun.disabled = true; const limit = Number(plimit.value);
+    for (let i = 0; i < ders.length; i++) {
+      let pc; try { pc = parseCert(ders[i]); } catch (e) { res("na", "UNREADABLE", "Certificate " + (i+1) + " couldn’t be parsed", e.message); continue; }
+      const sub = "issuer: " + pc.issuer + " · serial " + pc.serial;
+      if (!pc.Q) { res("na", "NOT APPLICABLE", pc.subject + " · " + pc.keyType, "The small-scalar test only applies to P-256 and P-384 keys. " + sub); continue; }
+      const c = CURVES[pc.curve], t0 = performance.now();
+      const d = await smallScalarSearch(pc.Q, c, limit, f => { prog.style.width = ((i + f) / ders.length * 100).toFixed(1) + "%"; });
+      const secs = ((performance.now() - t0) / 1000).toFixed(1);
+      if (d) { const v = mulA(BigInt(d), c.G, c), ok = v[0] === pc.Q[0] && v[1] === pc.Q[1];
+        res("weak", "WEAK KEY", pc.subject + ": private key d = " + d, (ok ? "Verified: d·G = Q on " : "Search hit but verification FAILED on ") + pc.curve + ". " + sub); }
+      else res("pass", "NO TINY KEY", pc.subject + " · " + pc.keyType, "No private key ≤ " + limit.toLocaleString() + " (" + secs + " s). " + sub);
+    }
+    prog.style.width = "100%"; prun.disabled = false;
+  });
+})();
 
-  /* ===== live wire ===== */
-  const wList = document.getElementById("wire-list"), wStatus = document.getElementById("wire-status"),
-        wDot = document.getElementById("wire-dot"), ticker = document.getElementById("ticker-text");
-  const fmtDate = s => { const d = new Date(s + (s.length === 10 ? "T00:00:00Z" : "")); return isNaN(d) ? s : d.toLocaleDateString(undefined, {day:"2-digit", month:"short", timeZone:"UTC"}); };
+/* ===== Episode 1: trust path explorer ===== */
+(function(){
+  const PATHS = [
+    {id: "win", name: "via emSign Root TLS CA – G3 as a root", anchor: "tlsRoot", copy: "E", nodes: ["leaf", "kE", "tlsRoot"], edges: ["e3", "e5"]},
+    {id: "ecc", name: "via the cross-certificate to emSign ECC Root CA – G3", anchor: "ecc", copy: "E", nodes: ["leaf", "kE", "tlsX", "ecc"], edges: ["e1", "e2", "e5"]},
+    {id: "aaa", name: "via the Sectigo cross-sign to AAA Certificate Services", anchor: "aaa", copy: "A", nodes: ["leaf", "kA", "aaa"], edges: ["e4", "e6"]}
+  ];
+  const PRESETS = {
+    debian:  {ecc: 1, tlsRoot: 0, aaa: 1, spki: 0, blockE: 0, blockA: 0, rev: 0, ct: 0},
+    windows: {ecc: 1, tlsRoot: 1, aaa: 1, spki: 0, blockE: 0, blockA: 0, rev: 0, ct: 0},
+    chrome:  {ecc: 1, tlsRoot: 0, aaa: 0, spki: 1, blockE: 0, blockA: 0, rev: 0, ct: 1},
+    certifi: {ecc: 0, tlsRoot: 0, aaa: 0, spki: 0, blockE: 0, blockA: 0, rev: 0, ct: 0}
+  };
+  const ids = {ecc: "a-ecc", tlsRoot: "a-tlsRoot", aaa: "a-aaa", spki: "d-spki", blockE: "d-blockE", blockA: "d-blockA", rev: "d-rev", ct: "d-ct"};
+  const box = id => document.getElementById(ids[id]);
+  const verdict = document.getElementById("tx-verdict");
+  function state(){ const s = {}; for (const k in ids) s[k] = box(k).checked; return s; }
+  function why(p, s){ const r = [];
+    if (!s[p.anchor]) r.push("its root isn’t in the trust store");
+    if (s.spki) r.push("the weak key is blocked by SPKI");
+    if (p.copy === "E" && s.blockE) r.push("the eMudhra-issued certificate is blocked");
+    if (p.copy === "A" && s.blockA) r.push("the Sectigo cross-sign is blocked");
+    if (s.rev) r.push("the intermediate is revoked (" + (p.copy === "E" ? "18" : "19") + " Oct)");
+    if (s.ct) r.push("the forged leaf has no SCTs");
+    return r; }
+  function render(){
+    const s = state(), live = PATHS.filter(p => !why(p, s).length);
+    document.querySelectorAll(".e").forEach(e => { e.classList.toggle("live", live.some(p => p.edges.includes(e.id))); e.setAttribute("marker-end", e.classList.contains("live") ? "url(#ahl)" : "url(#ah)"); });
+    ["ecc", "tlsRoot", "aaa", "tlsX", "kE", "kA", "leaf"].forEach(n => {
+      const g = document.getElementById("n-" + n); const x = g.querySelector("text.x");
+      const isLive = live.some(p => p.nodes.includes(n)); g.classList.toggle("live", isLive);
+      const anchorOff = (n in s) && !s[n]; g.classList.toggle("off", anchorOff);
+      let blk = "";
+      if (n === "kE" || n === "kA") { const c = n === "kE" ? "E" : "A";
+        blk = s.spki ? "✕ SPKI BLOCKED" : (c === "E" ? s.blockE : s.blockA) ? "✕ FINGERPRINT BLOCKED" : s.rev ? "✕ REVOKED" : ""; }
+      if (n === "leaf" && s.ct) blk = "";
+      if (anchorOff) blk = "NOT TRUSTED";
+      g.classList.toggle("blocked", !!blk && !anchorOff); if (x) x.textContent = blk;
+    });
+    const leafX = document.querySelector("#n-leaf text.s"); leafX.textContent = s.ct ? "no SCTs: rejected by CT" : "signed with the recovered d";
+    verdict.replaceChildren(); verdict.className = "verdict " + (live.length ? "open" : "safe");
+    const big = document.createElement("div"); big.className = "big";
+    big.textContent = live.length ? live.length + " of 3 paths still valid: an attacker with d can forge a certificate this client accepts." : "All 3 paths blocked: this client rejects forged certificates from these keys.";
+    const ul = document.createElement("ul");
+    for (const p of PATHS) { const r = why(p, s); const li = document.createElement("li");
+      li.textContent = (r.length ? "Blocked " : "OPEN ") + p.name + (r.length ? ": " + r.join("; ") + "." : "."); ul.appendChild(li); }
+    verdict.append(big, ul);
+    document.querySelectorAll("[data-preset]").forEach(b => { const pr = PRESETS[b.dataset.preset]; b.setAttribute("aria-pressed", String(Object.keys(ids).every(k => !!pr[k] === s[k]))); });
+  }
+  function apply(name){ const pr = PRESETS[name]; for (const k in ids) box(k).checked = !!pr[k]; render(); }
+  document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => apply(b.dataset.preset)));
+  for (const k in ids) box(k).addEventListener("change", render);
+  apply("debian");
+})();
+
+/* ===== Episode 7: error reader ===== */
+(function(){
+  const RULES = [
+    {re: /could not resolve|name or service not known|getaddrinfo|ENOTFOUND|timed? ?out|ETIMEDOUT|connection refused|ECONNREFUSED|ECONNRESET|network is unreachable|ERR_NAME_NOT_RESOLVED|ERR_CONNECTION/i, kind: "na", tag: "NOT A CERTIFICATE RESULT",
+     title: "Network error", body: "The TLS handshake never got as far as certificate validation. This tells you nothing about the trust store. Check DNS, proxy settings and firewalls, then rerun."},
+    {re: /self[- ]signed certificate in certificate chain|SELF_SIGNED_CERT_IN_CHAIN|verify return code: 19\b/i, kind: "warn", tag: "INCONCLUSIVE · LIKELY INTERCEPTION",
+     title: "A self-signed certificate appeared in the chain", body: "The test hosts never send a self-signed certificate, so something between you and the host is presenting its own chain, usually a TLS-inspecting proxy or antivirus. You’re testing the proxy’s trust decisions, not your client’s. Retest from a network without interception."},
+    {re: /hostname mismatch|doesn't match|does not match|no alternative certificate subject name|ERR_CERT_COMMON_NAME_INVALID|ERR_TLS_CERT_ALTNAME_INVALID|SSL_ERROR_BAD_CERT_DOMAIN|certificate is not valid for/i, kind: "warn", tag: "INCONCLUSIVE",
+     title: "Name mismatch", body: "The certificate you received isn’t for the test host, which points to a captive portal, proxy or typo. It says nothing about the eMudhra intermediates."},
+    {re: /expired|CERT_HAS_EXPIRED|ERR_CERT_DATE_INVALID|verify return code: 10\b|not yet valid/i, kind: "warn", tag: "INCONCLUSIVE",
+     title: "Validity period problem", body: "Either the test leaf has expired or your clock is wrong. Validation stopped on dates before trust was even decided, so this doesn’t prove distrust."},
+    {re: /TRUST_E_EXPLICIT_DISTRUST|0x800B0111|explicitly (marked as )?(un|dis)trusted|explicit distrust|SEC_E_UNTRUSTED_ROOT.*(distrust|disallowed)|Disallowed/i, kind: "pass", tag: "EXPLICIT DISTRUST",
+     title: "The certificate is on a distrust list", body: "The client matched the intermediate against an explicit block, such as the Windows Untrusted Certificates (Disallowed) store. This is the strongest local result: the block holds even if a root or cross-sign is still trusted."},
+    {re: /revoked|CERT_REVOKED|SEC_ERROR_REVOKED_CERTIFICATE|ERR_CERT_REVOKED|verify return code: 23\b|CRYPT_E_REVOKED|0x80092010/i, kind: "pass", tag: "REVOCATION OR BLOCKLIST HIT",
+     title: "The intermediate is reported as revoked", body: "The client consults revocation data or a pushed blocklist (OneCRL and CRLSets also surface as “revoked”). Good evidence it rejects these intermediates on every path, as long as that check can’t fail open, for example when the CRL server is unreachable."},
+    {re: /CERTIFICATE_TRANSPARENCY|INSUFFICIENT_CERTIFICATE_TRANSPARENCY|ERR_CERTIFICATE_TRANSPARENCY_REQUIRED|\bSCTs?\b/i, kind: "info", tag: "CT ENFORCEMENT",
+     title: "Rejected for missing Certificate Transparency", body: "The client wants SCTs and this leaf has none. That protects you against unlogged forgeries, but it says nothing about your trust store: try a logged host (without -noct) to see whether the intermediate itself is still trusted."},
+    {re: /unable to get local issuer|UNABLE_TO_GET_ISSUER_CERT_LOCALLY|unable to get issuer certificate|verify return code: 20\b|signed by unknown authority|PKIX path building failed|unable to find valid certification path|SEC_ERROR_UNKNOWN_ISSUER|ERR_CERT_AUTHORITY_INVALID|CERT_E_UNTRUSTEDROOT|0x800B0109|SEC_E_UNTRUSTED_ROOT|untrusted root|certificate is not trusted/i, kind: "info", tag: "UNKNOWN ISSUER",
+     title: "No trusted anchor for this chain", body: "Consistent with the root having been removed from this client’s store, which is the expected result after an update. It does not prove the intermediate is distrusted: if the client still trusts another anchor, a different chain (such as the AAA path) could still succeed. Test both the eMudhra and the -aaa host."},
+    {re: /unable to verify the first certificate|UNABLE_TO_VERIFY_LEAF_SIGNATURE|verify return code: 21\b/i, kind: "warn", tag: "INCONCLUSIVE",
+     title: "Incomplete chain as received", body: "The client didn’t get (or couldn’t fetch) the intermediate needed to link the leaf. Verify offline with the chain files from chains.zip instead."},
+    {re: /HTTP\/[0-9.]+ 2\d\d|HTTP 2\d\d|(^|\s)connected(\s|$)|verify return code: 0 \(ok\)|^\s*OK\s*$|: OK\b|<html|we have a problem/im, kind: "weak", tag: "STILL TRUSTED",
+     title: "The connection succeeded", body: "This client accepted a chain through a compromised intermediate. If the host was a -noct one, it also doesn’t enforce CT. Update its trust store (or rebuild, for Go and Electron) and add an explicit block where you can."}
+  ];
+  const tin = document.getElementById("err-in"), tout = document.getElementById("err-out");
+  function classify(){
+    tout.replaceChildren(); const text = tin.value.trim(); if (!text) return;
+    const hits = RULES.filter(r => r.re.test(text));
+    const show = hits.length ? hits : [{kind: "na", tag: "UNRECOGNISED", title: "No known pattern", body: "Try openssl s_client and read the “Verify return code” line, or paste the full error including any code in brackets."}];
+    for (const r of show) { const d = document.createElement("div"); d.className = "res " + r.kind;
+      const a = document.createElement("span"); a.className = "tag2"; a.textContent = r.tag;
+      const b = document.createElement("span"); b.className = "rt"; b.textContent = r.title;
+      const c = document.createElement("span"); c.className = "rs"; c.textContent = r.body; d.append(a, b, c); tout.appendChild(d); }
+  }
+  let to; tin.addEventListener("input", () => { clearTimeout(to); to = setTimeout(classify, 250); });
+  document.querySelectorAll("[data-ex]").forEach(b => b.addEventListener("click", () => { tin.value = b.dataset.ex; classify(); }));
+})();
+
+/* ===== Episode 9: incident response simulator ===== */
+(function(){
+  const POPS = [
+    {id: "br", name: "Chrome and Firefox users"},
+    {id: "ap", name: "Apple platform apps (Safari, system TLS)"},
+    {id: "win", name: "Windows apps on system trust, incl. code signing"},
+    {id: "lx", name: "Linux servers using the distro bundle"},
+    {id: "lib", name: "Apps with bundled roots (Python, Node, Rust)"},
+    {id: "go", name: "Deployed Go binaries"},
+    {id: "iot", name: "Devices with frozen trust stores"}
+  ];
+  const RANK = {exposed: 0, partial: 1, after: 2, protected: 3};
+  const LABEL = {exposed: "EXPOSED", partial: "PARTLY COVERED", after: "SAFE AFTER UPDATE", protected: "PROTECTED"};
+  const ACTIONS = [
+    {id: "push", title: "Push key blocks via OneCRL and CRLSets", hours: 2, fx: {br: "protected"},
+     out: "Chrome and Firefox users are protected within hours, no restart needed. Nothing outside the browsers sees these lists."},
+    {id: "rev", title: "Have the CA revoke the eight intermediates", hours: 15, fx: {win: "partial", ap: "partial"},
+     out: "Revocation is published, but only clients that check revocation, and can reach the CRL, benefit. The Sectigo cross-signs carry the same keys and are still valid."},
+    {id: "xrev", title: "Have Sectigo revoke its cross-signs", hours: 40, fx: {win: "partial", ap: "partial"},
+     out: "The AAA path is now revoked too, for clients that check. Most libraries and command-line tools never do."},
+    {id: "plat", title: "Coordinate Apple and Microsoft platform blocks", hours: 50, fx: {ap: "protected", win: "after"},
+     out: "Apple ships its block; Windows machines get theirs through automatic trust list updates. Offline or update-disabled machines need it applied by hand."},
+    {id: "root", title: "Remove emSign ECC Root CA – G3 from your root store", hours: 60, fx: {lib: "after", lx: "partial"},
+     out: "Bundles derived from yours (certifi, webpki-roots) are safe once updated. Distro bundles that still ship AAA Certificate Services keep a working path through the Sectigo cross-sign."},
+    {id: "down", title: "Brief downstream trust stores, runtimes and distros", hours: 70, fx: {lx: "after", lib: "after", go: "after"},
+     out: "Distros drop the affected roots, runtimes ship releases, Go adds a key block. Every fix lands only when someone updates a package, rebuilds an image or recompiles a binary."},
+    {id: "ct", title: "Get CT logs to refuse certificates from these CAs", hours: 4, fx: {},
+     out: "Defense in depth: a forged certificate can’t be quietly logged to satisfy CT-enforcing clients. It changes nothing for clients that never check CT."},
+    {id: "iot", title: "Ask device vendors for firmware updates", hours: 300, fx: {iot: "partial"},
+     out: "Some vendors ship updates over the following weeks. Many devices will never get one; those need network-level controls instead."}
+  ];
+  const actEl = document.getElementById("sim-actions"), popEl = document.getElementById("sim-pops"), score = document.getElementById("sim-score"),
+        logEl = document.getElementById("sim-log"), clock = document.getElementById("sim-clock");
+  let chosen = [];
+  function render(){
+    const st = Object.fromEntries(POPS.map(p => [p.id, "exposed"]));
+    for (const id of chosen) { const a = ACTIONS.find(x => x.id === id); for (const k in a.fx) if (RANK[a.fx[k]] > RANK[st[k]]) st[k] = a.fx[k]; }
+    popEl.replaceChildren();
+    for (const p of POPS) { const r = document.createElement("div"); r.className = "pop";
+      const n = document.createElement("span"); n.className = "pn"; n.textContent = p.name;
+      const s = document.createElement("span"); s.className = "st " + st[p.id]; s.textContent = LABEL[st[p.id]]; r.append(n, s); popEl.appendChild(r); }
+    actEl.querySelectorAll(".act").forEach(b => b.setAttribute("aria-pressed", String(chosen.includes(b.dataset.id))));
+    const hours = chosen.reduce((t, id) => t + ACTIONS.find(a => a.id === id).hours, 0);
+    clock.textContent = hours < 48 ? hours + " h" : Math.round(hours / 24) + " days";
+    const c = k => POPS.filter(p => st[p.id] === k).length;
+    score.textContent = chosen.length ? c("protected") + " protected · " + c("after") + " safe once updated · " + c("partial") + " partly covered · " + c("exposed") + " exposed"
+      : "7 populations exposed. Choose a first containment action.";
+    logEl.replaceChildren();
+    chosen.forEach((id, i) => { const a = ACTIONS.find(x => x.id === id); const d = document.createElement("div"); d.className = "entry";
+      const b = document.createElement("b"); b.textContent = (i + 1) + ". " + a.title; d.append(b, document.createTextNode(a.out)); logEl.appendChild(d); });
+    if (chosen.length === ACTIONS.length) { const d = document.createElement("div"); d.className = "entry";
+      const b = document.createElement("b"); b.textContent = "Every control deployed";
+      d.append(b, document.createTextNode("No single action closed every path, and even all of them together leave frozen devices partly exposed. That residue is why device trust stores need an update channel before the next incident.")); logEl.appendChild(d); }
+  }
+  for (const a of ACTIONS) { const b = document.createElement("button"); b.type = "button"; b.className = "act"; b.dataset.id = a.id;
+    const t = document.createElement("span"); t.className = "at"; t.textContent = a.title;
+    const h = document.createElement("span"); h.className = "ah"; h.textContent = "+" + (a.hours < 48 ? a.hours + " h" : Math.round(a.hours / 24) + " days");
+    b.append(t, h); b.addEventListener("click", () => { chosen = chosen.includes(a.id) ? chosen.filter(x => x !== a.id) : chosen.concat(a.id); render(); }); actEl.appendChild(b); }
+  document.getElementById("sim-reset").addEventListener("click", () => { chosen = []; render(); });
+  render();
+})();
+
+/* ===== live wire: curated feed + Hacker News + Bugzilla ===== */
+(function(){
+  const wList = document.getElementById("wire-list"), wStatus = document.getElementById("wire-status"), wDot = document.getElementById("wire-dot"),
+        wSrc = document.getElementById("wire-src"), ticker = document.getElementById("ticker-text"),
+        bz = document.getElementById("bz"), bzLink = document.getElementById("bz-link"), bzMeta = document.getElementById("bz-meta");
+  const BUG = 2083449, SINCE = "2026-10-17";
+  const fmtDate = s => { const d = new Date(s.length === 10 ? s + "T00:00:00Z" : s); return isNaN(d) ? s : d.toLocaleDateString(undefined, {day: "2-digit", month: "short", timeZone: "UTC"}); };
   const ago = iso => { const m = Math.round((Date.now() - new Date(iso)) / 60000); if (!isFinite(m)) return "";
     if (m < 2) return "just now"; if (m < 60) return m + " min ago"; const h = Math.round(m / 60); if (h < 36) return h + " h ago"; return Math.round(h / 24) + " days ago"; };
-  let lastChecked = null;
-  const paintStatus = () => { if (lastChecked) wStatus.textContent = "feed checked " + ago(lastChecked); };
+  const norm = u => { try { const x = new URL(u); return (x.host.replace(/^www\./, "") + x.pathname.replace(/\/$/, "")).toLowerCase(); } catch (e) { return u; } };
+  const safe = u => typeof u === "string" && /^https:\/\//.test(u);
+  let lastPayload = null;
 
-  function renderNews(snap){
-    const items = snap.docs.map(d => d.data()).filter(x => x && x.headline && x.url && /^https:\/\//.test(x.url));
-    wList.replaceChildren();
-    if (!items.length) { const li = document.createElement("li"); li.className = "wire-empty";
-      li.textContent = "No updates in the feed yet. New coverage appears here automatically."; wList.appendChild(li); return; }
-    for (const it of items.slice(0, 8)) {
-      const li = document.createElement("li"); const t = document.createElement("time");
-      t.dateTime = it.publishedAt || ""; t.textContent = it.publishedAt ? fmtDate(it.publishedAt) : "—";
-      const body = document.createElement("div"); body.className = "w-body";
-      const a = document.createElement("a"); a.href = it.url; a.target = "_blank"; a.rel = "noopener"; a.textContent = it.headline;
-      if (it.addedAt && Date.now() - new Date(it.addedAt) < 864e5) { const n = document.createElement("span"); n.className = "new"; n.textContent = "NEW"; a.appendChild(n); }
-      const src = document.createElement("span"); src.className = "w-src"; src.textContent = it.source || new URL(it.url).hostname;
-      body.append(a, src); li.append(t, body); wList.appendChild(li);
+  async function getJSON(url){ const r = await fetch(url, {cache: "no-store"}); if (!r.ok) throw new Error(r.status); return r.json(); }
+  async function curated(){ const f = await getJSON("news.json?t=" + Date.now());
+    return {items: (Array.isArray(f.items) ? f.items : []).filter(x => x && x.headline && safe(x.url)).map(x => ({...x, kind: "curated"})), checked: f.lastChecked || null}; }
+  async function hn(){ const j = await getJSON("https://hn.algolia.com/api/v1/search_by_date?query=eMudhra&tags=story&hitsPerPage=20");
+    return (j.hits || []).filter(h => h.title && h.created_at && h.created_at.slice(0, 10) >= SINCE).map(h => {
+      const thread = "https://news.ycombinator.com/item?id=" + encodeURIComponent(h.objectID);
+      return {headline: h.title, url: safe(h.url) ? h.url : thread, thread, source: "Hacker News · " + (h.points || 0) + " points · " + (h.num_comments || 0) + " comments",
+              publishedAt: h.created_at, addedAt: h.created_at, kind: "hn"}; }); }
+  async function bugzilla(){
+    const [b, c] = await Promise.all([
+      getJSON("https://bugzilla.mozilla.org/rest/bug/" + BUG + "?include_fields=id,status,resolution,last_change_time"),
+      getJSON("https://bugzilla.mozilla.org/rest/bug/" + BUG + "/comment?include_fields=count,creation_time")]);
+    const bug = (b.bugs || [])[0] || {}; const comments = ((c.bugs || {})[String(BUG)] || {}).comments || [];
+    const last = comments[comments.length - 1];
+    return {status: [bug.status, bug.resolution].filter(Boolean).join(" "), changed: bug.last_change_time, count: comments.length, lastCount: last ? last.count : null, lastAt: last ? last.creation_time : null}; }
+
+  function render(cur, hnItems, bzInfo, ok){
+    const seen = new Set(); const all = [];
+    for (const it of [...cur.items, ...hnItems]) { const k = norm(it.url); if (seen.has(k)) continue; seen.add(k); all.push(it); }
+    all.sort((a, b) => String(b.publishedAt).localeCompare(String(a.publishedAt)));
+    if (all.length) {
+      wList.replaceChildren();
+      for (const it of all.slice(0, 10)) {
+        const li = document.createElement("li"), t = document.createElement("time");
+        t.dateTime = it.publishedAt || ""; t.textContent = it.publishedAt ? fmtDate(it.publishedAt) : "—";
+        const body = document.createElement("div"); body.className = "w-body";
+        const a = document.createElement("a"); a.href = it.url; a.target = "_blank"; a.rel = "noopener"; a.textContent = it.headline;
+        if (it.addedAt && Date.now() - new Date(it.addedAt) < 864e5) { const n = document.createElement("span"); n.className = "new"; n.textContent = "NEW"; a.appendChild(n); }
+        const src = document.createElement("span"); src.className = "w-src";
+        if (it.kind === "hn" && it.thread !== it.url) { src.append("Hacker News · "); const d = document.createElement("a"); d.href = it.thread; d.target = "_blank"; d.rel = "noopener"; d.textContent = it.source.replace("Hacker News · ", ""); src.appendChild(d); }
+        else src.textContent = it.source || norm(it.url);
+        body.append(a, src); li.append(t, body); wList.appendChild(li);
+      }
+      const line = all.slice(0, 8).map(x => "★ " + x.headline.toUpperCase()).join(" ") + " ";
+      ticker.textContent = line + line;
     }
-    const line = items.slice(0, 8).map(x => "★ " + x.headline.toUpperCase()).join(" ") + " ";
-    ticker.textContent = line + line;
+    if (bzInfo) { bz.hidden = false; const n = bzInfo.lastCount != null ? bzInfo.lastCount : Math.max(0, bzInfo.count - 1);
+      bzLink.href = "https://bugzilla.mozilla.org/show_bug.cgi?id=" + BUG + (n ? "#c" + n : "");
+      bzLink.textContent = "Bug " + BUG + (n ? " · newest comment ↗" : " ↗");
+      bzMeta.textContent = [bzInfo.status, bzInfo.lastAt ? "last comment " + ago(bzInfo.lastAt) : (bzInfo.changed ? "updated " + ago(bzInfo.changed) : ""), bzInfo.count ? bzInfo.count + " comments" : ""].filter(Boolean).join(" · "); }
+    wSrc.textContent = "sources: curated feed " + (ok.cur ? "✓" : "✗") + " · Hacker News " + (ok.hn ? "✓" : "✗") + " · Mozilla Bugzilla " + (ok.bz ? "✓" : "✗");
+    const any = ok.cur || ok.hn || ok.bz; wDot.classList.toggle("on", any);
+    if (!any) wStatus.textContent = all.length ? "couldn’t refresh · showing last loaded" : "feed unavailable · showing the lecture as written";
+    else wStatus.textContent = "live · refreshed " + new Date().toLocaleTimeString(undefined, {hour: "2-digit", minute: "2-digit"}) + (cur.checked ? " · curated " + ago(cur.checked) : "");
   }
 
-  (async () => {
-    const db = window.claude && window.claude.use ? await window.claude.use("db") : null;
-    if (!db) { wStatus.textContent = "live feed offline in this view"; return; }
-    wDot.classList.add("on"); wStatus.textContent = "live";
-    db.collection("news").orderBy("publishedAt", "desc").limit(12).onSnapshot(renderNews,
-      () => { wDot.classList.remove("on"); wStatus.textContent = "feed paused · reload to reconnect"; });
-    db.doc("feed/status").onSnapshot(s => { const d = s.exists ? s.data() : null; lastChecked = d && d.lastChecked; paintStatus(); }, () => {});
-    setInterval(paintStatus, 60000);
-  })();
-
-  document.querySelectorAll(".copy").forEach(btn => btn.addEventListener("click", () => {
-    const pre = btn.closest(".code").querySelector("pre");
-    const text = pre.innerText;
-    const done = () => { btn.textContent = "COPIED"; setTimeout(() => btn.textContent = "COPY", 1400); };
-    const fallback = () => { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = "SELECTED"; setTimeout(() => btn.textContent = "COPY", 1400); };
-    try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
-  }));
+  async function load(){
+    const [c, h, b] = await Promise.allSettled([curated(), hn(), bugzilla()]);
+    const prev = lastPayload || {cur: {items: [], checked: null}, hn: [], bz: null};
+    const payload = {cur: c.status === "fulfilled" ? c.value : prev.cur, hn: h.status === "fulfilled" ? h.value : prev.hn, bz: b.status === "fulfilled" ? b.value : prev.bz};
+    lastPayload = payload;
+    render(payload.cur, payload.hn, payload.bz, {cur: c.status === "fulfilled", hn: h.status === "fulfilled", bz: b.status === "fulfilled"});
+    if (!payload.cur.items.length && !payload.hn.length && wList.querySelector(".wire-empty")) wList.querySelector(".wire-empty").textContent = "No coverage loaded yet. Check back shortly.";
+  }
+  load();
+  setInterval(load, 5 * 60 * 1000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
 })();
-</script>
 
-</body></html>
+/* ===== copy buttons ===== */
+document.querySelectorAll(".copy").forEach(btn => btn.addEventListener("click", () => {
+  const pre = btn.closest(".code").querySelector("pre"), text = pre.innerText;
+  const done = t => { btn.textContent = t; setTimeout(() => btn.textContent = "COPY", 1400); };
+  const fallback = () => { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); done("SELECTED"); };
+  try { navigator.clipboard.writeText(text).then(() => done("COPIED"), fallback); } catch (e) { fallback(); }
+}));
+</script>
+</body>
+</html>
