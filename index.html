@@ -329,10 +329,15 @@ details p{margin-top:8px;color:var(--muted)}
       <a id="bz-link" href="https://bugzilla.mozilla.org/show_bug.cgi?id=2083449" target="_blank" rel="noopener">Bug 2083449</a>
       <span class="mono" id="bz-meta"></span>
     </div>
+    <div class="bz" id="disc" hidden>
+      <b>DISCUSSION</b>
+      <a id="disc-link" href="https://hn.algolia.com/?q=eMudhra" target="_blank" rel="noopener">Hacker News</a>
+      <span class="mono" id="disc-meta"></span>
+    </div>
     <ol class="wire-list" id="wire-list" aria-live="polite">
       <li class="wire-empty">Loading the latest coverage…</li>
     </ol>
-    <div class="wire-src" id="wire-src">sources: curated feed · Hacker News · Mozilla Bugzilla</div>
+    <div class="wire-src" id="wire-src">sources: news reports (GDELT) · Hacker News · Mozilla Bugzilla</div>
   </div>
 </section>
 
@@ -1173,75 +1178,92 @@ const hx = (v, len) => v.toString(16).padStart(len*2, "0");
   render();
 })();
 
-/* ===== live wire: curated feed + Hacker News + Bugzilla ===== */
+/* ===== live wire: news reports (GDELT) + optional curated file; discussion (HN) and incident bug (Bugzilla) ===== */
 (function(){
   const wList = document.getElementById("wire-list"), wStatus = document.getElementById("wire-status"), wDot = document.getElementById("wire-dot"),
         wSrc = document.getElementById("wire-src"), ticker = document.getElementById("ticker-text"),
-        bz = document.getElementById("bz"), bzLink = document.getElementById("bz-link"), bzMeta = document.getElementById("bz-meta");
+        bz = document.getElementById("bz"), bzLink = document.getElementById("bz-link"), bzMeta = document.getElementById("bz-meta"),
+        disc = document.getElementById("disc"), discLink = document.getElementById("disc-link"), discMeta = document.getElementById("disc-meta");
   const BUG = 2083449, SINCE = "2026-10-17";
   const fmtDate = s => { const d = new Date(s.length === 10 ? s + "T00:00:00Z" : s); return isNaN(d) ? s : d.toLocaleDateString(undefined, {day: "2-digit", month: "short", timeZone: "UTC"}); };
   const ago = iso => { const m = Math.round((Date.now() - new Date(iso)) / 60000); if (!isFinite(m)) return "";
     if (m < 2) return "just now"; if (m < 60) return m + " min ago"; const h = Math.round(m / 60); if (h < 36) return h + " h ago"; return Math.round(h / 24) + " days ago"; };
   const norm = u => { try { const x = new URL(u); return (x.host.replace(/^www\./, "") + x.pathname.replace(/\/$/, "")).toLowerCase(); } catch (e) { return u; } };
-  const safe = u => typeof u === "string" && /^https:\/\//.test(u);
-  let lastPayload = null;
+  const titleKey = t => String(t).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().slice(0, 70);
+  const safe = u => typeof u === "string" && /^https?:\/\//.test(u);
+  const httpsish = u => u.replace(/^http:\/\//, "https://");
+  let last = {news: [], cur: [], hn: [], bz: null};
 
-  async function getJSON(url){ const r = await fetch(url, {cache: "no-store"}); if (!r.ok) throw new Error(r.status); return r.json(); }
-  async function curated(){ const f = await getJSON("news.json?t=" + Date.now());
-    return {items: (Array.isArray(f.items) ? f.items : []).filter(x => x && x.headline && safe(x.url)).map(x => ({...x, kind: "curated"})), checked: f.lastChecked || null}; }
-  async function hn(){ const j = await getJSON("https://hn.algolia.com/api/v1/search_by_date?query=eMudhra&tags=story&hitsPerPage=20");
-    return (j.hits || []).filter(h => h.title && h.created_at && h.created_at.slice(0, 10) >= SINCE).map(h => {
-      const thread = "https://news.ycombinator.com/item?id=" + encodeURIComponent(h.objectID);
-      return {headline: h.title, url: safe(h.url) ? h.url : thread, thread, source: "Hacker News · " + (h.points || 0) + " points · " + (h.num_comments || 0) + " comments",
-              publishedAt: h.created_at, addedAt: h.created_at, kind: "hn"}; }); }
+  async function getJSON(url){ const r = await fetch(url, {cache: "no-store"}); if (!r.ok) { const e = new Error(r.status); e.status = r.status; throw e; } const t = await r.text(); return JSON.parse(t); }
+  async function gdelt(){
+    const q = "https://api.gdeltproject.org/api/v2/doc/doc?query=" + encodeURIComponent("eMudhra") +
+              "&mode=ArtList&format=json&sort=DateDesc&maxrecords=50&startdatetime=" + SINCE.replace(/-/g, "") + "000000";
+    const j = await getJSON(q);
+    return (j.articles || []).filter(a => a.title && safe(a.url)).map(a => {
+      const m = /^(\d{4})(\d\d)(\d\d)T(\d\d)(\d\d)(\d\d)Z$/.exec(a.seendate || ""); const iso = m ? `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}Z` : "";
+      return {headline: a.title.trim(), url: httpsish(a.url), source: [a.domain, a.sourcecountry, a.language && a.language !== "English" ? a.language : ""].filter(Boolean).join(" · "),
+              publishedAt: iso, addedAt: iso, kind: "news"}; });
+  }
+  async function curated(){
+    try { const f = await getJSON("news.json?t=" + Date.now());
+      return (Array.isArray(f.items) ? f.items : []).filter(x => x && x.headline && safe(x.url)).map(x => ({...x, kind: "curated"})); }
+    catch (e) { if (e.status === 404) return null; throw e; }
+  }
+  async function hn(){ const j = await getJSON("https://hn.algolia.com/api/v1/search_by_date?query=eMudhra&tags=story&hitsPerPage=30");
+    return (j.hits || []).filter(h => h.title && h.created_at && h.created_at.slice(0, 10) >= SINCE)
+      .map(h => ({title: h.title, points: h.points || 0, comments: h.num_comments || 0, thread: "https://news.ycombinator.com/item?id=" + encodeURIComponent(h.objectID)})); }
   async function bugzilla(){
     const [b, c] = await Promise.all([
       getJSON("https://bugzilla.mozilla.org/rest/bug/" + BUG + "?include_fields=id,status,resolution,last_change_time"),
       getJSON("https://bugzilla.mozilla.org/rest/bug/" + BUG + "/comment?include_fields=count,creation_time")]);
     const bug = (b.bugs || [])[0] || {}; const comments = ((c.bugs || {})[String(BUG)] || {}).comments || [];
-    const last = comments[comments.length - 1];
-    return {status: [bug.status, bug.resolution].filter(Boolean).join(" "), changed: bug.last_change_time, count: comments.length, lastCount: last ? last.count : null, lastAt: last ? last.creation_time : null}; }
+    const lc = comments[comments.length - 1];
+    return {status: [bug.status, bug.resolution].filter(Boolean).join(" "), changed: bug.last_change_time, count: comments.length, lastCount: lc ? lc.count : null, lastAt: lc ? lc.creation_time : null}; }
 
-  function render(cur, hnItems, bzInfo, ok){
-    const seen = new Set(); const all = [];
-    for (const it of [...cur.items, ...hnItems]) { const k = norm(it.url); if (seen.has(k)) continue; seen.add(k); all.push(it); }
+  function render(ok){
+    const seenU = new Set(), seenT = new Set(), all = [];
+    for (const it of [...last.news, ...(last.cur || [])]) { const ku = norm(it.url), kt = titleKey(it.headline);
+      if (seenU.has(ku) || seenT.has(kt)) continue; seenU.add(ku); seenT.add(kt); all.push(it); }
     all.sort((a, b) => String(b.publishedAt).localeCompare(String(a.publishedAt)));
     if (all.length) {
       wList.replaceChildren();
-      for (const it of all.slice(0, 10)) {
+      for (const it of all.slice(0, 12)) {
         const li = document.createElement("li"), t = document.createElement("time");
         t.dateTime = it.publishedAt || ""; t.textContent = it.publishedAt ? fmtDate(it.publishedAt) : "—";
         const body = document.createElement("div"); body.className = "w-body";
         const a = document.createElement("a"); a.href = it.url; a.target = "_blank"; a.rel = "noopener"; a.textContent = it.headline;
         if (it.addedAt && Date.now() - new Date(it.addedAt) < 864e5) { const n = document.createElement("span"); n.className = "new"; n.textContent = "NEW"; a.appendChild(n); }
-        const src = document.createElement("span"); src.className = "w-src";
-        if (it.kind === "hn" && it.thread !== it.url) { src.append("Hacker News · "); const d = document.createElement("a"); d.href = it.thread; d.target = "_blank"; d.rel = "noopener"; d.textContent = it.source.replace("Hacker News · ", ""); src.appendChild(d); }
-        else src.textContent = it.source || norm(it.url);
+        const src = document.createElement("span"); src.className = "w-src"; src.textContent = it.source || norm(it.url).split("/")[0];
         body.append(a, src); li.append(t, body); wList.appendChild(li);
       }
       const line = all.slice(0, 8).map(x => "★ " + x.headline.toUpperCase()).join(" ") + " ";
       ticker.textContent = line + line;
-    }
-    if (bzInfo) { bz.hidden = false; const n = bzInfo.lastCount != null ? bzInfo.lastCount : Math.max(0, bzInfo.count - 1);
-      bzLink.href = "https://bugzilla.mozilla.org/show_bug.cgi?id=" + BUG + (n ? "#c" + n : "");
-      bzLink.textContent = "Bug " + BUG + (n ? " · newest comment ↗" : " ↗");
-      bzMeta.textContent = [bzInfo.status, bzInfo.lastAt ? "last comment " + ago(bzInfo.lastAt) : (bzInfo.changed ? "updated " + ago(bzInfo.changed) : ""), bzInfo.count ? bzInfo.count + " comments" : ""].filter(Boolean).join(" · "); }
-    wSrc.textContent = "sources: curated feed " + (ok.cur ? "✓" : "✗") + " · Hacker News " + (ok.hn ? "✓" : "✗") + " · Mozilla Bugzilla " + (ok.bz ? "✓" : "✗");
-    const any = ok.cur || ok.hn || ok.bz; wDot.classList.toggle("on", any);
-    if (!any) wStatus.textContent = all.length ? "couldn’t refresh · showing last loaded" : "feed unavailable · showing the lecture as written";
-    else wStatus.textContent = "live · refreshed " + new Date().toLocaleTimeString(undefined, {hour: "2-digit", minute: "2-digit"}) + (cur.checked ? " · curated " + ago(cur.checked) : "");
+    } else if (wList.querySelector(".wire-empty")) wList.querySelector(".wire-empty").textContent = "No news reports loaded yet. Check back shortly.";
+    if (last.hn.length) { disc.hidden = false; const top = last.hn.slice().sort((a, b) => b.points - a.points)[0];
+      discLink.href = top.thread; discLink.textContent = top.title;
+      discMeta.textContent = last.hn.length + (last.hn.length === 1 ? " thread" : " threads") + " · top: " + top.points + " points, " + top.comments + " comments"; }
+    if (last.bz) { const z = last.bz; bz.hidden = false; const n = z.lastCount != null ? z.lastCount : Math.max(0, z.count - 1);
+      bzLink.href = "https://bugzilla.mozilla.org/show_bug.cgi?id=" + BUG + (n ? "#c" + n : ""); bzLink.textContent = "Bug " + BUG + (n ? " · newest comment ↗" : " ↗");
+      bzMeta.textContent = [z.status, z.lastAt ? "last comment " + ago(z.lastAt) : (z.changed ? "updated " + ago(z.changed) : ""), z.count ? z.count + " comments" : ""].filter(Boolean).join(" · "); }
+    const parts = ["news reports " + (ok.news ? "✓" : "✗")];
+    if (last.cur !== null) parts.push("curated file " + (ok.cur ? "✓" : "✗"));
+    parts.push("Hacker News " + (ok.hn ? "✓" : "✗"), "Bugzilla " + (ok.bz ? "✓" : "✗"));
+    wSrc.textContent = "sources: " + parts.join(" · ");
+    const any = ok.news || ok.hn || ok.bz || (ok.cur && last.cur && last.cur.length); wDot.classList.toggle("on", !!any);
+    wStatus.textContent = any ? "live · refreshed " + new Date().toLocaleTimeString(undefined, {hour: "2-digit", minute: "2-digit"})
+                              : (all.length ? "couldn’t refresh · showing last loaded" : "feed unavailable · showing the lecture as written");
   }
 
   async function load(){
-    const [c, h, b] = await Promise.allSettled([curated(), hn(), bugzilla()]);
-    const prev = lastPayload || {cur: {items: [], checked: null}, hn: [], bz: null};
-    const payload = {cur: c.status === "fulfilled" ? c.value : prev.cur, hn: h.status === "fulfilled" ? h.value : prev.hn, bz: b.status === "fulfilled" ? b.value : prev.bz};
-    lastPayload = payload;
-    render(payload.cur, payload.hn, payload.bz, {cur: c.status === "fulfilled", hn: h.status === "fulfilled", bz: b.status === "fulfilled"});
-    if (!payload.cur.items.length && !payload.hn.length && wList.querySelector(".wire-empty")) wList.querySelector(".wire-empty").textContent = "No coverage loaded yet. Check back shortly.";
+    const [n, c, h, b] = await Promise.allSettled([gdelt(), curated(), hn(), bugzilla()]);
+    if (n.status === "fulfilled") last.news = n.value;
+    if (c.status === "fulfilled") last.cur = c.value;
+    if (h.status === "fulfilled") last.hn = h.value;
+    if (b.status === "fulfilled") last.bz = b.value;
+    render({news: n.status === "fulfilled", cur: c.status === "fulfilled" && c.value !== null, hn: h.status === "fulfilled", bz: b.status === "fulfilled"});
   }
   load();
-  setInterval(load, 5 * 60 * 1000);
+  setInterval(load, 10 * 60 * 1000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
 })();
 
