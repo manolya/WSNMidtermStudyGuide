@@ -1,0 +1,596 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>The eMudhra Key Compromise</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap">
+<style>
+/* Layout: one reading column of "episodes" under a transformation-sequence hero; CRT console for the live attack; pixel-shadow panels only where something is operated or copied. */
+:root{
+  --bg:#FFF0F7; --bg2:#F7E6FF; --panel:#FFFAFD; --ink:#2A1650; --muted:#5E4C82; --line:#D9C4F0;
+  --pink:#C2186B; --pinkfill:#FF8CC6; --lav:#8E6BE8; --cyan:#0A7894; --cyanfill:#9BEAFF; --gold:#F2B705;
+  --sky1:#E6D6FF; --sky2:#FFD3EA; --crt:#1C1042; --crtink:#9BFFD9; --crtdim:#7FA8C9; --bad:#B4123E; --good:#0B7A4E;
+  --f-display:"Silkscreen","Courier New",monospace;
+  --f-body:"M PLUS Rounded 1c","Trebuchet MS",system-ui,sans-serif;
+  --f-mono:"VT323","Courier New",monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#140B33; --bg2:#1C1046; --panel:#21144F; --ink:#FBE8F4; --muted:#BBAADF; --line:#3E2D7A;
+  --pink:#FF7BBF; --pinkfill:#E8338A; --lav:#C9B4FF; --cyan:#7FE3FF; --cyanfill:#1F6E8A; --gold:#FFD84D;
+  --sky1:#1A0F45; --sky2:#3A1660; --crt:#0B0624; --crtink:#9BFFD9; --crtdim:#7F8FC9; --bad:#FF6F91; --good:#6BF2B0;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#140B33; --bg2:#1C1046; --panel:#21144F; --ink:#FBE8F4; --muted:#BBAADF; --line:#3E2D7A;
+  --pink:#FF7BBF; --pinkfill:#E8338A; --lav:#C9B4FF; --cyan:#7FE3FF; --cyanfill:#1F6E8A; --gold:#FFD84D;
+  --sky1:#1A0F45; --sky2:#3A1660; --crt:#0B0624; --crtink:#9BFFD9; --crtdim:#7F8FC9; --bad:#FF6F91; --good:#6BF2B0;
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.7;overflow-x:hidden}
+a{color:var(--pink);text-underline-offset:3px}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px dashed var(--cyan);outline-offset:3px}
+code,.mono{font-family:var(--f-mono);font-size:1.18em;letter-spacing:.02em}
+p code,li code,td code{background:var(--bg2);padding:0 .3em;border-radius:3px}
+h1,h2,h3{text-wrap:balance;line-height:1.2;margin:0}
+p{margin:0}
+.wrap{max-width:820px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* hero */
+.hero{position:relative;overflow:hidden;background:linear-gradient(170deg,var(--sky1) 0%,var(--sky2) 100%);border-bottom:4px solid var(--ink)}
+.hero .wrap{position:relative;padding-block:56px 44px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center}
+.eyebrow{font-family:var(--f-display);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--pink)}
+.hero h1{font-family:var(--f-display);font-weight:700;font-size:clamp(44px,9vw,92px);line-height:.95;letter-spacing:.01em;margin:14px 0 18px;
+  text-shadow:3px 0 0 var(--pinkfill),-3px 0 0 var(--cyanfill)}
+.hero .lede{font-size:clamp(17px,2.2vw,20px);max-width:34ch;color:var(--ink)}
+.hero .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.chip{font-family:var(--f-mono);font-size:20px;line-height:1;padding:6px 10px 7px;border:2px solid var(--ink);background:var(--panel);color:var(--ink);border-radius:999px}
+.chip.hot{background:var(--pinkfill);color:#2A1650;border-color:var(--ink)}
+.moon{width:min(220px,30vw);height:auto;max-width:100%}
+.sparkle{position:absolute;fill:var(--gold);animation:tw 2.6s ease-in-out infinite}
+.sparkle.c{fill:var(--cyan)} .sparkle.p{fill:var(--pink)}
+@keyframes tw{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+
+.ticker{background:var(--ink);color:var(--bg);overflow:hidden;white-space:nowrap;border-bottom:4px solid var(--pinkfill)}
+.ticker span{display:inline-block;padding:8px 0;font-family:var(--f-display);font-size:13px;letter-spacing:.12em;animation:scroll 38s linear infinite}
+@keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* contents */
+.toc{padding-block:36px 8px}
+.toc ol{list-style:none;padding:0;margin:14px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px 20px}
+.toc a{display:flex;gap:10px;text-decoration:none;color:var(--ink);padding:4px 0;border-bottom:1px dotted var(--line)}
+.toc a span{font-family:var(--f-display);font-size:12px;color:var(--pink);padding-top:5px;min-width:26px}
+.toc a:hover{color:var(--pink)}
+
+/* episodes */
+.ep{padding-block:52px 8px;display:flex;flex-direction:column;gap:18px}
+.ep-head{display:flex;flex-direction:column;gap:6px;padding-bottom:14px;border-bottom:3px double var(--line)}
+.ep-head h2{font-weight:800;font-size:clamp(26px,4vw,36px)}
+.ep p,.ep li{max-width:68ch}
+.ep ul,.ep ol{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px}
+.ep li::marker{color:var(--pink)}
+h3{font-weight:800;font-size:20px;margin-top:10px}
+.divider{display:flex;justify-content:center;gap:14px;padding-top:40px}
+.divider svg{width:14px;height:14px}
+
+.callout{border:3px solid var(--ink);background:var(--panel);box-shadow:6px 6px 0 var(--pinkfill);padding:18px 20px;display:flex;flex-direction:column;gap:8px}
+.callout .tag{font-family:var(--f-display);font-size:12px;letter-spacing:.12em;color:var(--pink)}
+
+.tbl{overflow-x:auto;border:2px solid var(--ink);background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:15.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-display);font-weight:400;font-size:12px;letter-spacing:.1em;text-transform:uppercase;background:var(--bg2);color:var(--muted)}
+tr:last-child td{border-bottom:none}
+td.num{font-family:var(--f-mono);font-size:24px;line-height:1;text-align:right;font-variant-numeric:tabular-nums;color:var(--pink)}
+.pill{display:inline-block;font-size:12.5px;font-weight:700;padding:1px 8px;border-radius:999px;border:1.5px solid currentColor;white-space:nowrap}
+.pill.tls{color:var(--cyan)} .pill.cs{color:var(--lav)}
+
+/* diagram */
+.diagram{overflow-x:auto;border:2px solid var(--ink);background:var(--panel);padding:10px}
+.diagram svg{display:block;min-width:640px;width:100%;height:auto}
+.d-box{fill:var(--bg2);stroke:var(--ink);stroke-width:2}
+.d-hot{fill:var(--panel);stroke:var(--pink);stroke-width:3}
+.d-ghost{fill:none;stroke:var(--muted);stroke-width:2;stroke-dasharray:6 5}
+.d-t{fill:var(--ink);font-family:var(--f-body);font-size:14px;font-weight:700}
+.d-s{fill:var(--muted);font-family:var(--f-body);font-size:12.5px}
+.d-p{fill:var(--pink);font-family:var(--f-display);font-size:11px;letter-spacing:.08em}
+.d-line{stroke:var(--ink);stroke-width:2;fill:none}
+.d-line.x{stroke:var(--cyan);stroke-dasharray:7 5}
+.d-line.f{stroke:var(--pink);stroke-dasharray:3 5}
+.d-head{fill:var(--ink)} .d-head.x{fill:var(--cyan)} .d-head.f{fill:var(--pink)}
+
+/* timeline */
+.tl{list-style:none;padding:0!important;margin:0;gap:0!important;border-left:3px solid var(--line);margin-left:6px}
+.tl li{position:relative;padding:0 0 18px 22px;max-width:none}
+.tl li::before{content:"";position:absolute;left:-9px;top:8px;width:13px;height:13px;background:var(--panel);border:3px solid var(--lav);transform:rotate(45deg)}
+.tl li.hot::before{border-color:var(--pink);background:var(--pinkfill)}
+.tl time{display:block;font-family:var(--f-mono);font-size:21px;line-height:1.2;color:var(--pink)}
+.tl li.gap{font-family:var(--f-display);font-size:12px;letter-spacing:.1em;color:var(--muted);padding:6px 0 18px 22px}
+.tl li.gap::before{display:none}
+
+/* console */
+.console{border:3px solid var(--ink);box-shadow:6px 6px 0 var(--cyanfill);background:var(--crt);color:var(--crtink)}
+.console-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:2px solid var(--ink);background:var(--pinkfill);color:#2A1650;font-family:var(--f-display);font-size:12px;letter-spacing:.1em}
+.console-bar i{width:11px;height:11px;border:2px solid #2A1650;border-radius:50%;display:inline-block;background:#FFF0F7}
+.console-body{padding:16px;display:flex;flex-direction:column;gap:14px;font-family:var(--f-mono);font-size:20px;line-height:1.25}
+.keys{display:flex;flex-wrap:wrap;gap:8px}
+.keys button,.run{font-family:var(--f-mono);font-size:19px;line-height:1;padding:7px 10px 8px;background:transparent;color:var(--crtink);border:2px solid var(--crtdim);cursor:pointer;border-radius:4px}
+.keys button[aria-pressed="true"]{background:var(--crtink);color:var(--crt);border-color:var(--crtink)}
+.keys button.honest{border-style:dashed}
+.run{background:#FF8CC6;color:#2A1650;border-color:#FF8CC6;font-size:22px;padding:9px 16px 10px;align-self:flex-start}
+.run:disabled{opacity:.5;cursor:default}
+.qbox{word-break:break-all;color:var(--crtdim)}
+.qbox b{color:var(--crtink);font-weight:400}
+.log{min-height:9.2em;max-height:9.2em;overflow:hidden;white-space:pre;color:var(--crtdim);border-top:1px dashed var(--crtdim);padding-top:8px}
+.log .hit{color:#FFD84D}
+.result{font-size:24px;color:#FFD84D;min-height:1.3em}
+.result.fail{color:#FF9EC4}
+@media (prefers-reduced-motion:no-preference){.console-body{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px)}}
+
+/* code */
+.code{border:2px solid var(--ink);background:var(--crt);color:var(--crtink);position:relative}
+.code pre{margin:0;padding:14px 16px;overflow-x:auto;font-family:var(--f-mono);font-size:19px;line-height:1.3}
+.code .label{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 6px 6px 12px;background:var(--bg2);color:var(--ink);border-bottom:2px solid var(--ink);font-size:14px;font-weight:700}
+.copy{font-family:var(--f-display);font-size:11px;letter-spacing:.08em;padding:6px 9px;border:2px solid var(--ink);background:var(--panel);color:var(--ink);cursor:pointer}
+.code pre .c{color:var(--crtdim)}
+
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.layer{border:2px solid var(--line);padding:14px 16px;background:var(--panel);display:flex;flex-direction:column;gap:6px;min-width:0}
+.layer h3{margin:0;font-size:17px}
+.layer .who{font-family:var(--f-mono);font-size:20px;line-height:1.2;color:var(--cyan)}
+
+details{border:2px solid var(--line);background:var(--panel);padding:12px 16px}
+details+details{margin-top:-6px}
+summary{cursor:pointer;font-weight:700;list-style:none;display:flex;gap:10px}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"✦";color:var(--pink);flex:none}
+details[open] summary::before{content:"✧"}
+details p{margin-top:8px;color:var(--muted)}
+
+.sources{padding-block:52px 70px;font-size:15px}
+.sources ol{padding-left:1.4em;display:flex;flex-direction:column;gap:4px;margin:12px 0 0}
+.foot{font-family:var(--f-display);font-size:11px;letter-spacing:.1em;color:var(--muted);margin-top:30px}
+
+@media (max-width:620px){
+  .hero .wrap{grid-template-columns:1fr}
+  .moon{position:absolute;right:8px;top:18px;width:96px;opacity:.85}
+  .hero h1{padding-right:70px}
+}
+@media (prefers-reduced-motion:reduce){.sparkle,.ticker span{animation:none}}
+</style>
+
+<header class="hero">
+  <svg class="sparkle" style="left:6%;top:18px;width:18px;height:18px" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <svg class="sparkle c" style="left:46%;top:30px;width:12px;height:12px;animation-delay:.8s" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <svg class="sparkle p" style="left:58%;bottom:26px;width:16px;height:16px;animation-delay:1.5s" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <svg class="sparkle" style="right:5%;bottom:18px;width:10px;height:10px;animation-delay:.4s" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">Lecture · Web PKI incident study · October 2026</div>
+      <h1>8-BIT<br>TRUST</h1>
+      <p class="lede">How eight eMudhra intermediate CA keys ended up small enough to guess, and why your browser was fine while your build server wasn’t.</p>
+      <div class="meta">
+        <span class="chip hot">8 CA keys</span>
+        <span class="chip">P-384, d &lt; 256</span>
+        <span class="chip">exposed ≈17 months</span>
+        <span class="chip">CVE-2026-111943</span>
+      </div>
+    </div>
+    <svg class="moon" viewBox="0 0 200 200" role="img" aria-label="A crescent moon with stars">
+      <circle cx="100" cy="100" r="78" fill="var(--gold)"/>
+      <circle cx="132" cy="80" r="70" fill="var(--sky1)"/>
+      <circle cx="100" cy="100" r="78" fill="none" stroke="var(--ink)" stroke-width="4" stroke-dasharray="4 7" opacity=".5"/>
+      <path d="M168 132 171 142 181 145 171 148 168 158 165 148 155 145 165 142Z" fill="var(--pink)"/>
+      <path d="M150 30 152 36 158 38 152 40 150 46 148 40 142 38 148 36Z" fill="var(--cyan)"/>
+    </svg>
+  </div>
+</header>
+
+<div class="ticker" aria-hidden="true"><span>★ EIGHT INTERMEDIATE CA KEYS ★ EVERY ONE SMALLER THAN 256 ★ CHROME &amp; FIREFOX BLOCK · 17 OCT ★ APPLE · 19 OCT ★ MICROSOFT · 20 OCT ★ NSS 3.131.1 DROPS emSign ECC ROOT CA – G3 ★ UPDATE YOUR TRUST STORES ★ REBUILD YOUR GO BINARIES ★ EIGHT INTERMEDIATE CA KEYS ★ EVERY ONE SMALLER THAN 256 ★ CHROME &amp; FIREFOX BLOCK · 17 OCT ★ APPLE · 19 OCT ★ MICROSOFT · 20 OCT ★ NSS 3.131.1 DROPS emSign ECC ROOT CA – G3 ★ UPDATE YOUR TRUST STORES ★ REBUILD YOUR GO BINARIES&nbsp;</span></div>
+
+<main>
+<nav class="wrap toc" aria-label="Episodes">
+  <div class="eyebrow">Tonight’s episodes</div>
+  <ol>
+    <li><a href="#ep1"><span>01</span>Trust chains in five minutes</a></li>
+    <li><a href="#ep2"><span>02</span>What happened, hour by hour</a></li>
+    <li><a href="#ep3"><span>03</span>The weak keys (live attack)</a></li>
+    <li><a href="#ep4"><span>04</span>How a ceremony goes wrong</a></li>
+    <li><a href="#ep5"><span>05</span>Blast radius</a></li>
+    <li><a href="#ep6"><span>06</span>Browsers vs. everything else</a></li>
+    <li><a href="#ep7"><span>07</span>Lab: is your client exposed?</a></li>
+    <li><a href="#ep8"><span>08</span>Lessons and discussion</a></li>
+  </ol>
+</nav>
+
+<!-- EP 1 -->
+<section class="wrap ep" id="ep1">
+  <div class="ep-head"><div class="eyebrow">Episode 01</div><h2>Trust chains in five minutes</h2></div>
+  <p>A TLS client trusts a server certificate only if it can build a chain from that certificate up to a <b>root</b> in its trust store. Roots rarely sign server certificates directly. They sign <b>intermediate CAs</b>, and intermediates sign the leaf certificates that websites present. Every intermediate inherits the full trust of its root, for any domain name, unless a constraint says otherwise.</p>
+  <p>That inheritance is the whole story here. Steal or guess an intermediate’s private key and you can mint a certificate for <code>yourbank.com</code> that chains to a trusted root.</p>
+  <div class="diagram">
+    <svg viewBox="0 0 760 380" role="img" aria-label="Diagram: emSign ECC Root CA G3 signs eight eMudhra intermediates; Sectigo AAA Certificate Services cross-signs the same eight keys; Windows also trusts emSign Root TLS and Root CS CA G3 directly; an attacker holding an intermediate key can issue a leaf for any domain.">
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-head" d="M0 0 10 5 0 10Z"/></marker>
+        <marker id="ahx" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-head x" d="M0 0 10 5 0 10Z"/></marker>
+        <marker id="ahf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-head f" d="M0 0 10 5 0 10Z"/></marker>
+      </defs>
+      <text class="d-p" x="20" y="24">ROOTS (IN TRUST STORES)</text>
+      <rect class="d-box" x="20" y="36" width="220" height="62" rx="4"/>
+      <text class="d-t" x="34" y="62">emSign ECC Root CA – G3</text>
+      <text class="d-s" x="34" y="82">eMudhra · Mozilla, Chrome, Apple…</text>
+      <rect class="d-box" x="270" y="36" width="220" height="62" rx="4"/>
+      <text class="d-t" x="284" y="62">emSign Root TLS / CS – G3</text>
+      <text class="d-s" x="284" y="82">trusted directly on Windows</text>
+      <rect class="d-box" x="520" y="36" width="220" height="62" rx="4"/>
+      <text class="d-t" x="534" y="62">AAA Certificate Services</text>
+      <text class="d-s" x="534" y="82">Sectigo (Comodo) root</text>
+
+      <path class="d-line" d="M130 98 V150 H300 V168" marker-end="url(#ah)"/>
+      <path class="d-line" d="M380 98 V168" marker-end="url(#ah)"/>
+      <path class="d-line x" d="M630 98 V150 H460 V168" marker-end="url(#ahx)"/>
+      <text class="d-s" x="140" y="140">signed 30 Apr 2025</text>
+      <text class="d-s" x="520" y="140" style="fill:var(--cyan)">cross-signed 14 May 2025</text>
+
+      <text class="d-p" x="20" y="188">INTERMEDIATES</text>
+      <rect class="d-hot" x="220" y="176" width="320" height="80" rx="4"/>
+      <text class="d-t" x="238" y="204">8 eMudhra intermediates (G3B, G3C)</text>
+      <text class="d-s" x="238" y="226">6 TLS (DV / OV / EV) · 2 code signing</text>
+      <text class="d-p" x="238" y="246">PRIVATE KEY d ∈ [1, 255]</text>
+
+      <path class="d-line f" d="M380 256 V306" marker-end="url(#ahf)"/>
+      <text class="d-p" x="20" y="300">LEAF</text>
+      <rect class="d-ghost" x="220" y="310" width="320" height="56" rx="4"/>
+      <text class="d-t" x="238" y="335">Forged certificate for any name</text>
+      <text class="d-s" x="238" y="354">TLS server, client auth / mTLS, or signed code</text>
+    </svg>
+  </div>
+  <p>Two details make cleanup harder. Sectigo had cross-signed all eight keys under its own root, so the same keys chain to <b>two</b> independent roots. And on Windows, eMudhra’s TLS and code-signing G3 roots are trusted directly. Removing one root from one trust store does not close every path.</p>
+</section>
+
+<div class="divider" aria-hidden="true">
+  <svg viewBox="0 0 20 20" fill="var(--pink)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <svg viewBox="0 0 20 20" fill="var(--gold)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <svg viewBox="0 0 20 20" fill="var(--cyan)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+</div>
+
+<!-- EP 2 -->
+<section class="wrap ep" id="ep2">
+  <div class="ep-head"><div class="eyebrow">Episode 02</div><h2>What happened, hour by hour</h2></div>
+  <ol class="tl">
+    <li><time>2025-04-30</time>Key ceremony. eMudhra generates a batch of 24 intermediates; eight of them receive keys that are tiny integers.</li>
+    <li><time>2025-05-14</time>Sectigo cross-signs the eight under AAA Certificate Services.</li>
+    <li><time>2025-05-23</time>Earliest archived evidence of <b>invalid CRL signatures</b> from the six TLS intermediates.</li>
+    <li><time>2025-06-05 → 06-06</time>Mozilla bug 1970728 (“Invalid CRL signatures”) is filed. eMudhra blames a manual step that used the wrong CA key, republishes CRLs, and the bug is closed.</li>
+    <li class="gap">· · · 16 MONTHS OF NOTHING VISIBLE · · ·</li>
+    <li class="hot"><time>2026-10-17 · 18:05 UTC</time>A researcher signing as “Wayne”, running checks against the Common CA Database (CCADB), reports the keys to Google, Mozilla, Apple, Microsoft and eMudhra. Proof: the message <i>“We have a problem here – Wayne”</i> signed with each of the eight keys.</li>
+    <li class="hot"><time>2026-10-17 · 19:45 UTC</time>Chrome ships a CRLSet blocking the intermediates.</li>
+    <li class="hot"><time>2026-10-17 · 22:59 UTC</time>Mozilla’s OneCRL block reaches standard Firefox installs, no restart needed (report received 20:06 UTC).</li>
+    <li><time>2026-10-18</time>eMudhra revokes all eight intermediates with reason “CA compromise”.</li>
+    <li><time>2026-10-19</time>Apple blocks; Sectigo revokes its cross-signs; Android gets the block via Google Play services; downstream trust stores are briefed.</li>
+    <li><time>2026-10-20</time>Microsoft blocks. Public disclosure. NSS 3.131.1 removes emSign ECC Root CA – G3; Go, Debian, certifi and others ship updates.</li>
+    <li><time>2026-10-27 (expected)</time>Chrome’s removal of emSign ECC Root CA – G3 reaches all devices.</li>
+  </ol>
+  <div class="callout">
+    <div class="tag">★ Key idea</div>
+    <p>Browsers moved within <b>five hours</b> because they own a push channel for distrust. Most other software has no such channel, and a fix there means a package release, an image rebuild, or a firmware update.</p>
+  </div>
+</section>
+
+<div class="divider" aria-hidden="true">
+  <svg viewBox="0 0 20 20" fill="var(--pink)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <svg viewBox="0 0 20 20" fill="var(--gold)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <svg viewBox="0 0 20 20" fill="var(--cyan)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+</div>
+
+<!-- EP 3 -->
+<section class="wrap ep" id="ep3">
+  <div class="ep-head"><div class="eyebrow">Episode 03</div><h2>The weak keys</h2></div>
+  <p>These are ECDSA keys on the NIST P-384 curve. The private key is a scalar <code>d</code>, and the public key in the certificate is the point <code>Q = d·G</code>, where <code>G</code> is the curve’s fixed generator. Security rests on <code>d</code> being a uniformly random number of about 384 bits. Each of these eight was an integer below 256: roughly <b>8 bits</b> of entropy. Recovering one means computing <code>G, 2G, 3G, …</code> until a point equals <code>Q</code>, at most 255 steps.</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Intermediate</th><th>Use</th><th>Subject org</th><th style="text-align:right">d</th></tr></thead>
+      <tbody>
+        <tr><td>EM DV TLS CA – G3B</td><td><span class="pill tls">TLS · DV</span></td><td>eMudhra BV</td><td class="num">156</td></tr>
+        <tr><td>EM OV TLS CA – G3B</td><td><span class="pill tls">TLS · OV</span></td><td>eMudhra BV</td><td class="num">155</td></tr>
+        <tr><td>EM EV TLS CA – G3B</td><td><span class="pill tls">TLS · EV</span></td><td>eMudhra BV</td><td class="num">115</td></tr>
+        <tr><td>EM DV TLS CA – G3C</td><td><span class="pill tls">TLS · DV</span></td><td>eMudhra Inc</td><td class="num">230</td></tr>
+        <tr><td>EM OV TLS CA – G3C</td><td><span class="pill tls">TLS · OV</span></td><td>eMudhra Inc</td><td class="num">4</td></tr>
+        <tr><td>EM EV TLS CA – G3C</td><td><span class="pill tls">TLS · EV</span></td><td>eMudhra Inc</td><td class="num">56</td></tr>
+        <tr><td>EM OV CS CA – G3B</td><td><span class="pill cs">Code signing</span></td><td>eMudhra BV</td><td class="num">66</td></tr>
+        <tr><td>EM OV CS CA – G3C</td><td><span class="pill cs">Code signing</span></td><td>eMudhra Inc</td><td class="num">237</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The certificates themselves look structurally normal. Nothing in the ASN.1, extensions or validity dates hints at the problem. Only a test of the key itself reveals it.</p>
+
+  <h3>Try it: brute-force a CA key in your browser</h3>
+  <p>The console below does real P-384 arithmetic in JavaScript. Pick one of the published key values, or an honestly generated random key, and run the search. The page computes <code>Q</code> first and then searches for <code>d</code> using only <code>Q</code>.</p>
+  <div class="console">
+    <div class="console-bar"><i></i><i></i><i></i>&nbsp;KEYSEARCH.EXE · P-384</div>
+    <div class="console-body">
+      <div class="keys" role="group" aria-label="Choose a target key" id="keys"></div>
+      <div class="qbox" id="qbox">Q.x = …</div>
+      <button class="run" id="run" type="button">▶ RUN ATTACK</button>
+      <div class="log" id="log" aria-live="off"></div>
+      <div class="result" id="result" aria-live="polite"></div>
+    </div>
+  </div>
+  <p>The honest key fails, as it should. Brute force over 2<sup>384</sup> values is hopeless, and even the best generic attack on elliptic-curve discrete logs (Pollard’s rho) needs on the order of 2<sup>192</sup> group operations. A correctly generated P-384 key is not the weak point in any realistic threat model. A badly generated one is.</p>
+</section>
+
+<div class="divider" aria-hidden="true">
+  <svg viewBox="0 0 20 20" fill="var(--pink)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <svg viewBox="0 0 20 20" fill="var(--gold)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <svg viewBox="0 0 20 20" fill="var(--cyan)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+</div>
+
+<!-- EP 4 -->
+<section class="wrap ep" id="ep4">
+  <div class="ep-head"><div class="eyebrow">Episode 04</div><h2>How a ceremony goes wrong</h2></div>
+  <p>A key ceremony is the scripted, witnessed, audited procedure in which a CA generates keys inside a hardware security module (HSM) and produces certificate signing requests. eMudhra’s preliminary report in Mozilla bug 2083449 describes this chain of failures:</p>
+  <ol>
+    <li><b>A faulty ceremony script</b> created a second, weak key pair on the HSM alongside each properly generated one.</li>
+    <li><b>Labels looked alike.</b> Staff selected keys by human-readable label, and the weak pairs were picked when building the CSRs.</li>
+    <li><b>The certificates were issued</b> over the weak public keys, so the certified key and the key the CA actually signed with later were not the same.</li>
+    <li><b>Human error at several steps,</b> by eMudhra’s own account, let it pass review and audit.</li>
+  </ol>
+  <div class="callout">
+    <div class="tag">★ The missed signal</div>
+    <p>If the CA kept signing CRLs with the good HSM key while the certificate carried the weak public key, every CRL signature would fail to verify. That is exactly what was observed in May–June 2025. The June bug was closed as a process slip, and eMudhra now links those invalid signatures to the same key mismatch. A pairwise-consistency check failed in production, publicly, 16 months before anyone looked closer.</p>
+  </div>
+  <p>eMudhra says only one of the eight (EM DV TLS CA – G3C) was ever put into production and that none issued end-entity certificates. It has stopped issuing from the G3 hierarchy and plans to re-verify every ceremony it has performed. Because root programs are distrusting the root, about 30,000 customer certificates need to move to another hierarchy.</p>
+</section>
+
+<div class="divider" aria-hidden="true">
+  <svg viewBox="0 0 20 20" fill="var(--pink)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <svg viewBox="0 0 20 20" fill="var(--gold)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <svg viewBox="0 0 20 20" fill="var(--cyan)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+</div>
+
+<!-- EP 5 -->
+<section class="wrap ep" id="ep5">
+  <div class="ep-head"><div class="eyebrow">Episode 05</div><h2>Blast radius</h2></div>
+  <p>This is unusual among CA compromises. Normally someone steals a key, and you can reason about when it happened and who has it. Here nobody had to steal anything: the key was derivable from the public certificate from the day it was issued. Assume all eight keys are known to every attacker.</p>
+  <div class="grid2">
+    <div class="layer"><h3>TLS impersonation</h3><p>Six keys can sign a server certificate for any domain. An on-path attacker can intercept or modify HTTPS traffic for any client that accepts the chain.</p></div>
+    <div class="layer"><h3>Client auth and mTLS</h3><p>At least one intermediate carries the Client Auth EKU, so forged client certificates are possible against servers that authenticate clients through these roots.</p></div>
+    <div class="layer"><h3>Code signing</h3><p>Two keys chain to a code-signing root trusted by Microsoft. Signed malware could look like it came from a verified publisher on systems that skip revocation checks.</p></div>
+    <div class="layer"><h3>Exposure window</h3><p>About 17 months (April 2025 to October 2026). No exploitation has been confirmed, and nothing can prove the keys were never used against clients that ignore CT.</p></div>
+  </div>
+  <div class="callout">
+    <div class="tag">★ What CT proves, and what it doesn’t</div>
+    <p>No certificate chaining to these intermediates appears in Certificate Transparency logs before the block. Chrome, Firefox, Safari and Edge refuse publicly trusted TLS certificates without CT proofs, so they could not have been attacked. curl, Python, Node.js, Go services and IoT firmware don’t enforce CT, and for them the logs say nothing. Code-signing certificates aren’t logged at all.</p>
+  </div>
+</section>
+
+<div class="divider" aria-hidden="true">
+  <svg viewBox="0 0 20 20" fill="var(--pink)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <svg viewBox="0 0 20 20" fill="var(--gold)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <svg viewBox="0 0 20 20" fill="var(--cyan)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+</div>
+
+<!-- EP 6 -->
+<section class="wrap ep" id="ep6">
+  <div class="ep-head"><div class="eyebrow">Episode 06</div><h2>Browsers vs. everything else</h2></div>
+  <p>A browser rejecting one of these certificates now does so three ways at once. Most other TLS stacks have none of these defenses and rely on a static root bundle.</p>
+  <div class="grid2">
+    <div class="layer"><div class="who">Firefox · OneCRL / CRLite</div><h3>Pushed intermediate blocklist</h3><p>Delivered through remote settings, no update or restart. Firefox 158.0.1 and the ESRs carry it for installs that disable remote settings.</p></div>
+    <div class="layer"><div class="who">Chrome · CRLSets</div><h3>Pushed revocation set</h3><p>Shipped 1 h 40 m after the report. Chrome didn’t need to block the code-signing keys, since its TLS verifier won’t build a path through a code-signing-only intermediate.</p></div>
+    <div class="layer"><div class="who">All major browsers · CT</div><h3>Transparency enforcement</h3><p>A forged leaf has no SCTs, and Google worked to ensure logs refuse certificates from these CAs.</p></div>
+    <div class="layer"><div class="who">Root programs</div><h3>Distrust the root</h3><p>Mozilla removed emSign ECC Root CA – G3 in NSS 3.131.1. Chrome is removing it too and reviewing eMudhra’s remaining roots.</p></div>
+  </div>
+  <h3>Where the gap is</h3>
+  <ul>
+    <li><b>Bundled CA files.</b> curl, Python (certifi, pip, uv), Node.js and Rust (webpki-roots) carry their own copy of the Mozilla roots and usually don’t check revocation. In Scott Helme’s tests, curl, Python and Node.js on Linux and macOS accepted a forged certificate from EM DV TLS CA – G3B.</li>
+    <li><b>Static binaries.</b> Go embeds its fallback roots and the new block at compile time. Deployed Go binaries keep the old behaviour until rebuilt with Go 1.27.3 or 1.26.10. The same applies to Electron apps.</li>
+    <li><b>Containers.</b> A running image keeps the <code>ca-certificates</code> it was built with. Rebuild from a patched base.</li>
+    <li><b>macOS command-line tools.</b> The built-in <code>curl</code>, <code>git</code>, <code>python3</code> and <code>openssl</code> read <code>/etc/ssl/cert.pem</code>, which wasn’t updated, and don’t consult the OS block.</li>
+    <li><b>Embedded and IoT devices</b> with frozen trust stores. These need the intermediates distrusted by hand, segmentation, and outbound restrictions.</li>
+  </ul>
+  <div class="callout">
+    <div class="tag">★ Why “remove the root” is not enough</div>
+    <p>Removing emSign ECC Root CA – G3 still leaves the Sectigo cross-signs chaining the same keys to AAA Certificate Services, and Windows trusts the eMudhra TLS and code-signing G3 roots directly. Debian removed both emSign ECC Root CA – G3 and AAA Certificate Services. Removing AAA can break legitimate sites, so it needs testing before broad rollout.</p>
+  </div>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Component</th><th>Fixed in</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td>NSS</td><td><code>3.131.1</code></td><td>Drops emSign ECC Root CA – G3</td></tr>
+        <tr><td>Go</td><td><code>1.27.3</code>, <code>1.26.10</code></td><td>CVE-2026-111943; rebuild binaries</td></tr>
+        <tr><td>Node.js</td><td><code>22.23.4</code>, <code>24.22.1</code>, <code>26.12.1</code></td><td>One per supported line</td></tr>
+        <tr><td>Python certifi</td><td><code>2026.10.19</code></td><td>Also pip <code>26.2.2</code>, uv <code>0.13.4</code></td></tr>
+        <tr><td>Rust</td><td>rustls-webpki <code>0.103.16</code>, webpki-roots <code>1.0.10</code></td><td></td></tr>
+        <tr><td>Java (OpenJDK / Oracle)</td><td><code>21.0.13.0.2</code>, <code>17.0.21.0.2</code>, <code>8u511</code>…</td><td>All supported lines</td></tr>
+        <tr><td>Electron</td><td><code>44.9.1</code>, <code>43.8.1</code>, <code>42.11.16</code></td><td>Rebuild apps</td></tr>
+        <tr><td>curl CA bundle</td><td><code>2026-10-20</code> extract</td><td></td></tr>
+        <tr><td>Debian / Ubuntu / Alpine</td><td>updated <code>ca-certificates</code></td><td>Alpine <code>20261020-r0</code></td></tr>
+        <tr><td>Bun</td><td>pending</td><td>As of 21 Oct</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="color:var(--muted);font-size:15px">About the CVE: the flaw sits in a CA’s key ceremony, not in a software product, so the incident itself has no CVE. Downstream projects assigned IDs to track their trust-store fixes: CVE-2026-111943 (Go, reused by Red Hat and others) and CVE-2026-113470 (Firefox’s OneCRL update).</p>
+</section>
+
+<div class="divider" aria-hidden="true">
+  <svg viewBox="0 0 20 20" fill="var(--pink)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <svg viewBox="0 0 20 20" fill="var(--gold)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <svg viewBox="0 0 20 20" fill="var(--cyan)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+</div>
+
+<!-- EP 7 -->
+<section class="wrap ep" id="ep7">
+  <div class="ep-head"><div class="eyebrow">Episode 07</div><h2>Lab: is your client exposed?</h2></div>
+  <p>The community disclosure site runs test hosts that serve chains through the compromised intermediates. For these checks a <b>certificate error is the good result</b>.</p>
+  <h3>Task 1 · Probe your command-line clients</h3>
+  <div class="code"><div class="label">shell<button class="copy" type="button">COPY</button></div><pre>curl https://dv-g3b-emudhra.we-have-a-problem.com/
+curl https://dv-g3b-aaa-emudhra.we-have-a-problem.com/
+<span class="c"># error  → client rejects the intermediates (good)
+# a page → this client still trusts them; update its trust store</span></pre></div>
+  <p>The second host serves the Sectigo cross-signed path. Run both from your laptop, a CI runner and a container, and compare.</p>
+
+  <h3>Task 2 · Check the bundle your language uses</h3>
+  <div class="code"><div class="label">shell<button class="copy" type="button">COPY</button></div><pre>python3 -c "import certifi; print(certifi.__version__)"   <span class="c"># want ≥ 2026.10.19</span>
+node -p "process.versions.node"                            <span class="c"># 22.23.4 / 24.22.1 / 26.12.1</span>
+go version                                                 <span class="c"># ≥ 1.27.3 or 1.26.10, then rebuild</span>
+grep -E 'emSign_ECC|Comodo_AAA' /etc/ca-certificates.conf   <span class="c"># Debian/Ubuntu: '!' = distrusted</span></pre></div>
+
+  <h3>Task 3 · Verify the reporter’s proof</h3>
+  <p>The disclosure site’s <code>proof.zip</code> holds each certificate, its public key, and a signature over the reporter’s message. Confirm that the signing key matches the certified key:</p>
+  <div class="code"><div class="label">shell<button class="copy" type="button">COPY</button></div><pre>openssl x509 -in EM-DV-TLS-CA-G3B.crt.pem -noout -pubkey | diff - EM-DV-TLS-CA-G3B.pub.pem
+openssl dgst -sha384 -verify EM-DV-TLS-CA-G3B.pub.pem \
+  -signature EM-DV-TLS-CA-G3B.sig message.txt</pre></div>
+
+  <h3>Task 4 · Write the check the ceremony was missing</h3>
+  <p>Given any EC CA certificate, test whether its key is a small scalar. This takes a few seconds for 2<sup>16</sup> candidates and would have caught all eight keys on day one.</p>
+  <div class="code"><div class="label">python · weak_key_check.py<button class="copy" type="button">COPY</button></div><pre>import sys
+from cryptography import x509
+from cryptography.hazmat.primitives.asymmetric import ec
+
+cert = x509.load_pem_x509_certificate(open(sys.argv[1], "rb").read())
+pub = cert.public_key().public_numbers()
+curve = cert.public_key().curve
+
+for d in range(1, 1 &lt;&lt; 16):
+    q = ec.derive_private_key(d, curve).public_key().public_numbers()
+    if (q.x, q.y) == (pub.x, pub.y):
+        print(f"WEAK KEY: d = {d}  ({cert.subject.rfc4514_string()})")
+        break
+else:
+    print("no small scalar found")</pre></div>
+  <p style="color:var(--muted);font-size:15px">Extension: rewrite it with incremental point addition (Q<sub>k+1</sub> = Q<sub>k</sub> + G) instead of a fresh scalar multiplication each step, and measure the speed-up.</p>
+</section>
+
+<div class="divider" aria-hidden="true">
+  <svg viewBox="0 0 20 20" fill="var(--pink)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <svg viewBox="0 0 20 20" fill="var(--gold)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+  <svg viewBox="0 0 20 20" fill="var(--cyan)"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
+</div>
+
+<!-- EP 8 -->
+<section class="wrap ep" id="ep8">
+  <div class="ep-head"><div class="eyebrow">Episode 08</div><h2>Lessons and discussion</h2></div>
+  <h3>For anyone who runs keys</h3>
+  <ul>
+    <li><b>Pairwise consistency, every time.</b> Before publishing a certificate, sign a test value with the exact HSM key handle you will use and verify it with the certificate’s public key.</li>
+    <li><b>Select keys by fingerprint, not by label.</b> Bind CSRs to a key identifier (SKI or public-key hash) that the ceremony record checks, not to a name a person reads off a screen.</li>
+    <li><b>Lint keys, not only certificates.</b> Small-scalar, duplicate-key and known-weak-generator tests are cheap and belong in ceremony scripts and in CA monitoring.</li>
+    <li><b>Treat “wrong key” symptoms as security events.</b> An invalid CRL signature from a CA is a key-integrity question first and a process question second.</li>
+  </ul>
+  <h3>For anyone who relies on keys</h3>
+  <ul>
+    <li><b>Know every trust store you ship.</b> OS bundle, language bundle, the copy inside a static binary, the one baked into a container image or firmware.</li>
+    <li><b>Have a distrust path faster than a release.</b> Browsers have OneCRL and CRLSets; most backends have nothing between “root trusted” and “next package update.”</li>
+    <li><b>Enforce CT where you can.</b> It turned an unknowable exposure into a provable non-event for browser users.</li>
+  </ul>
+
+  <h3>Discussion questions</h3>
+  <details><summary>Why did Chrome block only six of the eight intermediates?</summary><p>The other two are restricted to code signing. Chrome’s TLS path builder won’t accept a code-signing-only intermediate in a server chain, so those keys couldn’t produce a certificate Chrome would trust for HTTPS.</p></details>
+  <details><summary>Mozilla removed emSign ECC Root CA – G3. Why can a client with that update still be at risk?</summary><p>The Sectigo cross-signs chain the same eight keys to AAA Certificate Services. A client that trusts AAA, doesn’t check revocation, and lacks an intermediate blocklist can still build a valid path.</p></details>
+  <details><summary>What lets us say browser users were never attacked, and why doesn’t that extend to curl?</summary><p>CT logs show no certificate under these intermediates before the block, and browsers require CT proofs. curl and most libraries don’t check SCTs, so a forged certificate never logged anywhere would still be accepted.</p></details>
+  <details><summary>How could the June 2025 CRL incident have exposed this 16 months earlier?</summary><p>Ask why the CRL signature didn’t verify against the certificate’s key. Recovering or comparing the certified public key with the HSM signing key would have shown a mismatch, and a small-scalar test on the certified key would have found d immediately.</p></details>
+  <details><summary>This incident has no CVE of its own, yet many products shipped “security fixes.” Is CVE the right tool for trust-store changes?</summary><p>Open question. Points for: scanners and SBOM tooling key off CVE IDs. Points against: one CA event spawned per-ecosystem IDs (Go, Firefox) that describe the same root cause differently.</p></details>
+  <details><summary>Should a root program distrust a whole hierarchy for a mistake in eight intermediates that issued no customer certificates?</summary><p>Weigh 30,000 certificates to migrate against the signal that a CA’s ceremony, audits and incident response all missed a key that was guessable for 17 months, after a public warning sign.</p></details>
+</section>
+
+<section class="wrap sources" aria-labelledby="src-h">
+  <div class="eyebrow" id="src-h">Sources · as of 22 October 2026</div>
+  <ol>
+    <li><a href="https://emudhra.we-have-a-problem.com/">eMudhra Intermediate CA Compromise</a> · community disclosure site (Dennis Jackson et al.)</li>
+    <li><a href="https://www.helpnetsecurity.com/2026/10/21/emudhra-certificates-private-keys-compromised/">eMudhra security blunder left trusted CA signing keys exposed</a> · Help Net Security</li>
+    <li><a href="https://socradar.io/blog/emudhra-ca-key-compromise-weak-keys-risks-and-fixes/">eMudhra CA Key Compromise: Weak Keys, Risks and Fixes</a> · SOCRadar</li>
+    <li><a href="https://thehackernews.com/2026/10/eight-emudhra-ca-keys-compromised.html">Eight eMudhra CA Keys Compromised</a> · The Hacker News</li>
+    <li><a href="https://www.endorlabs.com/learn/emudhra-intermediate-ca-compromise-the-trust-stores-you-patched-and-the-ones-you-didnt-know-you-had">The trust stores you patched, and the ones you didn’t know you had</a> · Endor Labs</li>
+    <li><a href="https://access.redhat.com/security/vulnerabilities/RHSB-2026-012">RHSB-2026-012 Certificate compromise – eMudhra</a> · Red Hat</li>
+    <li><a href="https://lwn.net/Articles/1101643/">eMudhra intermediate CA compromise</a> · LWN.net</li>
+    <li><a href="https://www.infoq.com/news/2026/10/emudhra-ca-compromise/">eMudhra Intermediate CA Compromise</a> · InfoQ</li>
+    <li><a href="https://bugzilla.mozilla.org/show_bug.cgi?id=2083449">Mozilla bug 2083449</a> · incident report and eMudhra’s preliminary root cause</li>
+  </ol>
+  <div class="foot">★ Facts move fast in an active incident. Check the disclosure site before class. ★</div>
+</section>
+</main>
+
+<script>
+/* ===== P-384 math (BigInt, affine) ===== */
+const P = 2n**384n - 2n**128n - 2n**96n + 2n**32n - 1n;
+const A = P - 3n;
+const N = 0xffffffffffffffffffffffffffffffffffffffffffffffffc7634d81f4372ddf581a0db248b0a77aecec196accc52973n;
+const G = [0xaa87ca22be8b05378eb1c71ef320ad746e1d3b628ba79b9859f741e082542a385502f25dbf55296c3a545e3872760ab7n,
+           0x3617de4a96262c6f5d9e98bf9292dc29f8f41dbd289a147ce9da3113b5f0b8c00a60b1ce1d7e819d7a431d7c90ea0e5fn];
+const md = a => { a %= P; return a < 0n ? a + P : a; };
+function inv(a){ let r0 = md(a), r1 = P, s0 = 1n, s1 = 0n;
+  while (r1) { const q = r0 / r1; [r0, r1] = [r1, r0 - q*r1]; [s0, s1] = [s1, s0 - q*s1]; }
+  return md(s0); }
+function add(p, q){ if (!p) return q; if (!q) return p;
+  const [x1,y1] = p, [x2,y2] = q; let l;
+  if (x1 === x2) { if (md(y1 + y2) === 0n) return null; l = md((3n*x1*x1 + A) * inv(2n*y1)); }
+  else l = md((y2 - y1) * inv(x2 - x1));
+  const x3 = md(l*l - x1 - x2); return [x3, md(l*(x1 - x3) - y1)]; }
+function mul(k, p){ let r = null, a = p; while (k > 0n) { if (k & 1n) r = add(r, a); a = add(a, a); k >>= 1n; } return r; }
+/* ===== end math ===== */
+
+(function(){
+  const targets = [
+    {label:"OV TLS G3C", d:4n},{label:"EV TLS G3C", d:56n},{label:"OV CS G3B", d:66n},{label:"EV TLS G3B", d:115n},
+    {label:"OV TLS G3B", d:155n},{label:"DV TLS G3B", d:156n},{label:"DV TLS G3C", d:230n},{label:"OV CS G3C", d:237n},
+    {label:"Honest random key", d:null}
+  ];
+  const keysEl = document.getElementById("keys"), qbox = document.getElementById("qbox"),
+        runBtn = document.getElementById("run"), log = document.getElementById("log"), result = document.getElementById("result");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let cur = null, Q = null, running = false;
+  const hx = v => v.toString(16).padStart(96, "0");
+
+  function randomD(){ const b = new Uint8Array(56); crypto.getRandomValues(b);
+    let v = 0n; for (const x of b) v = (v << 8n) | BigInt(x); return v % (N - 1n) + 1n; }
+
+  function select(i){
+    if (running) return;
+    cur = targets[i]; const d = cur.d ?? randomD(); Q = mul(d, G);
+    [...keysEl.children].forEach((b, j) => b.setAttribute("aria-pressed", String(j === i)));
+    const x = hx(Q[0]);
+    qbox.innerHTML = "target: " + cur.label + "<br>Q.x = <b>" + x.slice(0,24) + "</b>" + x.slice(24) ;
+    log.textContent = ""; result.textContent = ""; result.className = "result";
+  }
+  targets.forEach((t, i) => { const b = document.createElement("button"); b.type = "button";
+    b.textContent = t.d === null ? "◇ " + t.label : t.label; if (t.d === null) b.className = "honest";
+    b.addEventListener("click", () => select(i)); keysEl.appendChild(b); });
+
+  function line(k, pt, hit){
+    const s = "try d=" + String(k).padStart(3, " ") + "  x=" + hx(pt[0]).slice(0, 16) + "…  " + (hit ? "MATCH ★" : "✗");
+    const row = document.createElement("div"); row.textContent = s; if (hit) row.className = "hit";
+    log.appendChild(row); while (log.childElementCount > 7) log.firstChild.remove();
+  }
+
+  runBtn.addEventListener("click", () => {
+    if (running || !Q) return;
+    // time the pure search first
+    const t0 = performance.now(); let pt = G, found = 0;
+    for (let k = 1; k <= 255; k++) { if (pt[0] === Q[0] && pt[1] === Q[1]) { found = k; break; } pt = add(pt, G); }
+    const ms = performance.now() - t0, last = found || 255;
+    running = true; runBtn.disabled = true; log.textContent = ""; result.textContent = ""; result.className = "result";
+    let k = 1; pt = G;
+    const step = () => {
+      const batch = reduce ? last : 3;
+      for (let i = 0; i < batch && k <= last; i++, k++) { line(k, pt, k === found); pt = add(pt, G); }
+      if (k <= last) { requestAnimationFrame(step); return; }
+      running = false; runBtn.disabled = false;
+      if (found) result.textContent = "KEY RECOVERED ★ d = " + found + " after " + found + " tries (" + ms.toFixed(1) + " ms of math)";
+      else { result.className = "result fail";
+        result.textContent = "No match in 255 tries. Keyspace ≈ 3.9 × 10^115; best known attack ≈ 2^192 operations."; }
+    };
+    step();
+  });
+
+  select(0);
+
+  document.querySelectorAll(".copy").forEach(btn => btn.addEventListener("click", () => {
+    const pre = btn.closest(".code").querySelector("pre");
+    const text = pre.innerText;
+    const done = () => { btn.textContent = "COPIED"; setTimeout(() => btn.textContent = "COPY", 1400); };
+    const fallback = () => { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = "SELECTED"; setTimeout(() => btn.textContent = "COPY", 1400); };
+    try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
+  }));
+})();
+</script>
+
+</body></html>
