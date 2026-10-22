@@ -1,6 +1,10 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Lecture on the October 2026 eMudhra intermediate CA key compromise, with a live P-384 key-recovery demo and a live news feed.">
 <title>The eMudhra Key Compromise</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap">
@@ -25,8 +29,9 @@
   --sky1:#1A0F45; --sky2:#3A1660; --crt:#0B0624; --crtink:#9BFFD9; --crtdim:#7F8FC9; --bad:#FF6F91; --good:#6BF2B0;
   color-scheme:dark}
 
+html{color-scheme:light}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.7;overflow-x:hidden}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.7;overflow-x:hidden}
 a{color:var(--pink);text-underline-offset:3px}
 a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px dashed var(--cyan);outline-offset:3px}
 code,.mono{font-family:var(--f-mono);font-size:1.18em;letter-spacing:.02em}
@@ -53,6 +58,28 @@ p{margin:0}
 .ticker{background:var(--ink);color:var(--bg);overflow:hidden;white-space:nowrap;border-bottom:4px solid var(--pinkfill)}
 .ticker span{display:inline-block;padding:8px 0;font-family:var(--f-display);font-size:13px;letter-spacing:.12em;animation:scroll 38s linear infinite}
 @keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* live wire */
+.wire{padding-block:28px 0}
+.wire-box{border:3px solid var(--ink);background:var(--panel);box-shadow:6px 6px 0 var(--cyanfill)}
+.wire-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 16px;padding:10px 14px;border-bottom:2px solid var(--ink);background:var(--bg2)}
+.wire-head h2{font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:.14em;display:flex;align-items:center;gap:10px}
+.dot{width:11px;height:11px;border-radius:50%;background:var(--muted);flex:none}
+.dot.on{background:var(--pinkfill);box-shadow:0 0 0 0 var(--pinkfill)}
+@media (prefers-reduced-motion:no-preference){.dot.on{animation:pulse 1.8s ease-out infinite}}
+@keyframes pulse{0%{box-shadow:0 0 0 0 var(--pinkfill)}100%{box-shadow:0 0 0 10px transparent}}
+.wire-status{font-family:var(--f-mono);font-size:19px;line-height:1.2;color:var(--muted)}
+.wire-list{list-style:none;margin:0;padding:0}
+.wire-list li{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;padding:10px 14px;border-bottom:1px dotted var(--line);align-items:baseline}
+.wire-list li:last-child{border-bottom:none}
+.wire-list time{font-family:var(--f-mono);font-size:20px;line-height:1.2;color:var(--pink);white-space:nowrap;font-variant-numeric:tabular-nums}
+.wire-list .w-body{min-width:0;display:flex;flex-direction:column;gap:2px}
+.wire-list a{color:var(--ink);font-weight:700;text-decoration:none;line-height:1.4}
+.wire-list a:hover{color:var(--pink);text-decoration:underline}
+.wire-list .w-src{font-size:13.5px;color:var(--muted)}
+.wire-list .new{font-family:var(--f-display);font-size:10px;letter-spacing:.1em;background:var(--gold);color:#2A1650;padding:1px 6px;margin-left:6px;vertical-align:2px}
+.wire-empty{display:block!important;color:var(--muted);font-size:15px}
+@media (max-width:520px){.wire-list li{grid-template-columns:1fr}}
 
 /* contents */
 .toc{padding-block:36px 8px}
@@ -158,6 +185,8 @@ details p{margin-top:8px;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){.sparkle,.ticker span{animation:none}}
 </style>
 
+</head>
+<body>
 <header class="hero">
   <svg class="sparkle" style="left:6%;top:18px;width:18px;height:18px" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
   <svg class="sparkle c" style="left:46%;top:30px;width:12px;height:12px;animation-delay:.8s" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
@@ -185,9 +214,21 @@ details p{margin-top:8px;color:var(--muted)}
   </div>
 </header>
 
-<div class="ticker" aria-hidden="true"><span>★ EIGHT INTERMEDIATE CA KEYS ★ EVERY ONE SMALLER THAN 256 ★ CHROME &amp; FIREFOX BLOCK · 17 OCT ★ APPLE · 19 OCT ★ MICROSOFT · 20 OCT ★ NSS 3.131.1 DROPS emSign ECC ROOT CA – G3 ★ UPDATE YOUR TRUST STORES ★ REBUILD YOUR GO BINARIES ★ EIGHT INTERMEDIATE CA KEYS ★ EVERY ONE SMALLER THAN 256 ★ CHROME &amp; FIREFOX BLOCK · 17 OCT ★ APPLE · 19 OCT ★ MICROSOFT · 20 OCT ★ NSS 3.131.1 DROPS emSign ECC ROOT CA – G3 ★ UPDATE YOUR TRUST STORES ★ REBUILD YOUR GO BINARIES&nbsp;</span></div>
+<div class="ticker" aria-hidden="true"><span id="ticker-text">★ EIGHT INTERMEDIATE CA KEYS ★ EVERY ONE SMALLER THAN 256 ★ CHROME &amp; FIREFOX BLOCK · 17 OCT ★ APPLE · 19 OCT ★ MICROSOFT · 20 OCT ★ NSS 3.131.1 DROPS emSign ECC ROOT CA – G3 ★ UPDATE YOUR TRUST STORES ★ REBUILD YOUR GO BINARIES ★ EIGHT INTERMEDIATE CA KEYS ★ EVERY ONE SMALLER THAN 256 ★ CHROME &amp; FIREFOX BLOCK · 17 OCT ★ APPLE · 19 OCT ★ MICROSOFT · 20 OCT ★ NSS 3.131.1 DROPS emSign ECC ROOT CA – G3 ★ UPDATE YOUR TRUST STORES ★ REBUILD YOUR GO BINARIES&nbsp;</span></div>
 
 <main>
+<section class="wrap wire" aria-labelledby="wire-h">
+  <div class="wire-box">
+    <div class="wire-head">
+      <h2 id="wire-h"><span class="dot" id="wire-dot" aria-hidden="true"></span>LIVE WIRE</h2>
+      <span class="wire-status" id="wire-status">connecting…</span>
+    </div>
+    <ol class="wire-list" id="wire-list">
+      <li class="wire-empty">Loading the latest coverage…</li>
+    </ol>
+  </div>
+</section>
+
 <nav class="wrap toc" aria-label="Episodes">
   <div class="eyebrow">Tonight’s episodes</div>
   <ol>
@@ -583,6 +624,71 @@ function mul(k, p){ let r = null, a = p; while (k > 0n) { if (k & 1n) r = add(r,
 
   select(0);
 
+  /* ===== live wire ===== */
+  const wList = document.getElementById("wire-list"), wStatus = document.getElementById("wire-status"),
+        wDot = document.getElementById("wire-dot"), ticker = document.getElementById("ticker-text");
+  const fmtDate = s => { const d = new Date(s + (s.length === 10 ? "T00:00:00Z" : "")); return isNaN(d) ? s : d.toLocaleDateString(undefined, {day:"2-digit", month:"short", timeZone:"UTC"}); };
+  const ago = iso => { const m = Math.round((Date.now() - new Date(iso)) / 60000); if (!isFinite(m)) return "";
+    if (m < 2) return "just now"; if (m < 60) return m + " min ago"; const h = Math.round(m / 60); if (h < 36) return h + " h ago"; return Math.round(h / 24) + " days ago"; };
+  let lastChecked = null;
+  const paintStatus = () => { if (lastChecked) wStatus.textContent = "feed checked " + ago(lastChecked); };
+
+  function renderNews(snap){
+    const items = snap.docs.map(d => d.data()).filter(x => x && x.headline && x.url && /^https:\/\//.test(x.url));
+    wList.replaceChildren();
+    if (!items.length) { const li = document.createElement("li"); li.className = "wire-empty";
+      li.textContent = "No updates in the feed yet. New coverage appears here automatically."; wList.appendChild(li); return; }
+    for (const it of items.slice(0, 8)) {
+      const li = document.createElement("li"); const t = document.createElement("time");
+      t.dateTime = it.publishedAt || ""; t.textContent = it.publishedAt ? fmtDate(it.publishedAt) : "—";
+      const body = document.createElement("div"); body.className = "w-body";
+      const a = document.createElement("a"); a.href = it.url; a.target = "_blank"; a.rel = "noopener"; a.textContent = it.headline;
+      if (it.addedAt && Date.now() - new Date(it.addedAt) < 864e5) { const n = document.createElement("span"); n.className = "new"; n.textContent = "NEW"; a.appendChild(n); }
+      const src = document.createElement("span"); src.className = "w-src"; src.textContent = it.source || new URL(it.url).hostname;
+      body.append(a, src); li.append(t, body); wList.appendChild(li);
+    }
+    const line = items.slice(0, 8).map(x => "★ " + x.headline.toUpperCase()).join(" ") + " ";
+    ticker.textContent = line + line;
+  }
+
+  /* Static hosting (e.g. GitHub Pages): read news.json beside this page and re-check every 10 minutes. */
+  async function loadJson(){
+    try {
+      const r = await fetch("news.json?t=" + Date.now(), {cache: "no-store"});
+      if (!r.ok) throw new Error(r.status);
+      const j = await r.json();
+      const items = (Array.isArray(j.items) ? j.items : []).slice().sort((a, b) => String(b.publishedAt).localeCompare(String(a.publishedAt)));
+      renderNews({docs: items.map(x => ({data: () => x}))});
+      wDot.classList.add("on"); lastChecked = j.lastChecked || null;
+      if (lastChecked) paintStatus(); else wStatus.textContent = "live";
+    } catch (e) {
+      wDot.classList.remove("on"); wStatus.textContent = "live feed offline";
+    }
+  }
+
+  async function loadFeed(){
+    try {
+      const r = await fetch("news.json?t=" + Date.now(), {cache: "no-store"});
+      if (!r.ok) throw new Error(r.status);
+      const feed = await r.json();
+      const docs = (Array.isArray(feed.items) ? feed.items : [])
+        .slice().sort((x, y) => String(y.publishedAt || "").localeCompare(String(x.publishedAt || "")))
+        .map(it => ({data: () => it}));
+      renderNews({docs});
+      lastChecked = feed.lastChecked || null;
+      wDot.classList.add("on"); paintStatus();
+      if (!lastChecked) wStatus.textContent = "live";
+    } catch (e) {
+      wDot.classList.remove("on");
+      if (!wList.querySelector("a")) wStatus.textContent = "feed unavailable · showing the lecture as written";
+      else wStatus.textContent = "couldn't refresh · showing last loaded feed";
+    }
+  }
+  loadFeed();
+  setInterval(loadFeed, 5 * 60 * 1000);
+  setInterval(paintStatus, 60000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) loadFeed(); });
+
   document.querySelectorAll(".copy").forEach(btn => btn.addEventListener("click", () => {
     const pre = btn.closest(".code").querySelector("pre");
     const text = pre.innerText;
@@ -592,5 +698,5 @@ function mul(k, p){ let r = null, a = p; while (k > 0n) { if (k & 1n) r = add(r,
   }));
 })();
 </script>
-
-</body></html>
+</body>
+</html>
