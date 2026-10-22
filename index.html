@@ -1,10 +1,6 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Lecture on the October 2026 eMudhra intermediate CA key compromise, with a live P-384 key-recovery demo and a live news feed.">
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>The eMudhra Key Compromise</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap">
@@ -29,9 +25,8 @@
   --sky1:#1A0F45; --sky2:#3A1660; --crt:#0B0624; --crtink:#9BFFD9; --crtdim:#7F8FC9; --bad:#FF6F91; --good:#6BF2B0;
   color-scheme:dark}
 
-html{color-scheme:light}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.7;overflow-x:hidden}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.7;overflow-x:hidden}
 a{color:var(--pink);text-underline-offset:3px}
 a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px dashed var(--cyan);outline-offset:3px}
 code,.mono{font-family:var(--f-mono);font-size:1.18em;letter-spacing:.02em}
@@ -185,8 +180,6 @@ details p{margin-top:8px;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){.sparkle,.ticker span{animation:none}}
 </style>
 
-</head>
-<body>
 <header class="hero">
   <svg class="sparkle" style="left:6%;top:18px;width:18px;height:18px" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
   <svg class="sparkle c" style="left:46%;top:30px;width:12px;height:12px;animation-delay:.8s" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 0 12 8 20 10 12 12 10 20 8 12 0 10 8 8Z"/></svg>
@@ -221,10 +214,10 @@ details p{margin-top:8px;color:var(--muted)}
   <div class="wire-box">
     <div class="wire-head">
       <h2 id="wire-h"><span class="dot" id="wire-dot" aria-hidden="true"></span>LIVE WIRE</h2>
-      <span class="wire-status" id="wire-status">connecting…</span>
+      <span class="wire-status" id="wire-status">Connecting to the feed…</span>
     </div>
     <ol class="wire-list" id="wire-list">
-      <li class="wire-empty">Loading the latest coverage…</li>
+      <li class="wire-empty">Latest coverage of the incident appears here. The feed is refreshed automatically several times a day.</li>
     </ol>
   </div>
 </section>
@@ -651,43 +644,15 @@ function mul(k, p){ let r = null, a = p; while (k > 0n) { if (k & 1n) r = add(r,
     ticker.textContent = line + line;
   }
 
-  /* Static hosting (e.g. GitHub Pages): read news.json beside this page and re-check every 10 minutes. */
-  async function loadJson(){
-    try {
-      const r = await fetch("news.json?t=" + Date.now(), {cache: "no-store"});
-      if (!r.ok) throw new Error(r.status);
-      const j = await r.json();
-      const items = (Array.isArray(j.items) ? j.items : []).slice().sort((a, b) => String(b.publishedAt).localeCompare(String(a.publishedAt)));
-      renderNews({docs: items.map(x => ({data: () => x}))});
-      wDot.classList.add("on"); lastChecked = j.lastChecked || null;
-      if (lastChecked) paintStatus(); else wStatus.textContent = "live";
-    } catch (e) {
-      wDot.classList.remove("on"); wStatus.textContent = "live feed offline";
-    }
-  }
-
-  async function loadFeed(){
-    try {
-      const r = await fetch("news.json?t=" + Date.now(), {cache: "no-store"});
-      if (!r.ok) throw new Error(r.status);
-      const feed = await r.json();
-      const docs = (Array.isArray(feed.items) ? feed.items : [])
-        .slice().sort((x, y) => String(y.publishedAt || "").localeCompare(String(x.publishedAt || "")))
-        .map(it => ({data: () => it}));
-      renderNews({docs});
-      lastChecked = feed.lastChecked || null;
-      wDot.classList.add("on"); paintStatus();
-      if (!lastChecked) wStatus.textContent = "live";
-    } catch (e) {
-      wDot.classList.remove("on");
-      if (!wList.querySelector("a")) wStatus.textContent = "feed unavailable · showing the lecture as written";
-      else wStatus.textContent = "couldn't refresh · showing last loaded feed";
-    }
-  }
-  loadFeed();
-  setInterval(loadFeed, 5 * 60 * 1000);
-  setInterval(paintStatus, 60000);
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) loadFeed(); });
+  (async () => {
+    const db = window.claude && window.claude.use ? await window.claude.use("db") : null;
+    if (!db) { wStatus.textContent = "live feed offline in this view"; return; }
+    wDot.classList.add("on"); wStatus.textContent = "live";
+    db.collection("news").orderBy("publishedAt", "desc").limit(12).onSnapshot(renderNews,
+      () => { wDot.classList.remove("on"); wStatus.textContent = "feed paused · reload to reconnect"; });
+    db.doc("feed/status").onSnapshot(s => { const d = s.exists ? s.data() : null; lastChecked = d && d.lastChecked; paintStatus(); }, () => {});
+    setInterval(paintStatus, 60000);
+  })();
 
   document.querySelectorAll(".copy").forEach(btn => btn.addEventListener("click", () => {
     const pre = btn.closest(".code").querySelector("pre");
@@ -698,5 +663,5 @@ function mul(k, p){ let r = null, a = p; while (k > 0n) { if (k & 1n) r = add(r,
   }));
 })();
 </script>
-</body>
-</html>
+
+</body></html>
