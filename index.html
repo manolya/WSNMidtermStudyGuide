@@ -225,6 +225,11 @@ h3.wk-h{font-size:19px;margin:28px 0 4px;padding-top:6px;border-top:1px dashed v
 .scenario .a ul{margin:4px 0 0;padding-left:0;list-style:none}
 .scenario .a ul li{margin:6px 0;padding-left:0}
 .scenario .a ul li b{display:inline-block;min-width:112px;color:var(--accent)}
+.fb .bl{display:inline-block;min-width:5.5em;border-bottom:2px solid var(--accent);margin:0 3px;vertical-align:-2px}
+.fb details.q summary .num{font-family:var(--f-mono);color:var(--muted);margin-right:6px}
+.fb details.q .a b{color:var(--accent)}
+.fb .alt{color:var(--muted);font-size:.92em}
+.fb h4{margin:22px 0 6px}
 @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
 </style>
 
@@ -242,7 +247,8 @@ h3.wk-h{font-size:19px;margin:28px 0 4px;padding-top:6px;border-top:1px dashed v
     <li><a href="#s7"><span class="n">7</span>Formula &amp; mechanism sheet<span class="tick">✓</span></a></li>
     <li><a href="#s8"><span class="n">8</span>Practice — from the files<span class="tick">✓</span></a></li>
     <li><a href="#s9"><span class="n">9</span>Extra practice<span class="tick">✓</span></a></li>
-    <li><a href="#s10"><span class="n">10</span>Scenario questions<span class="tick">✓</span></a></li>
+    <li><a href="#s10"><span class="n">10</span>Fill in the blank<span class="tick">✓</span></a></li>
+    <li><a href="#s11"><span class="n">11</span>Scenario questions<span class="tick">✓</span></a></li>
   </ol>
   <div class="benches">
     <h2>Interactive benches</h2>
@@ -270,7 +276,7 @@ h3.wk-h{font-size:19px;margin:28px 0 4px;padding-top:6px;border-top:1px dashed v
   </ul>
   <details class="toc-mobile"><summary>Sections and benches</summary>
     <ol>
-      <li><a href="#s0">Conventions</a></li><li><a href="#s1">WSN &amp; mote hardware</a></li><li><a href="#s2">Radio &amp; PHY</a></li><li><a href="#s3">Energy</a></li><li><a href="#s4">MAC I: contention</a></li><li><a href="#s5">MAC II: scheduled</a></li><li><a href="#s6">Naming &amp; 6LoWPAN</a></li><li><a href="#s7">Formula &amp; mechanism sheet</a></li><li><a href="#s8">Practice — from the files</a></li><li><a href="#s9">Extra practice</a></li><li><a href="#s10">Scenario questions</a></li>
+      <li><a href="#s0">Conventions</a></li><li><a href="#s1">WSN &amp; mote hardware</a></li><li><a href="#s2">Radio &amp; PHY</a></li><li><a href="#s3">Energy</a></li><li><a href="#s4">MAC I: contention</a></li><li><a href="#s5">MAC II: scheduled</a></li><li><a href="#s6">Naming &amp; 6LoWPAN</a></li><li><a href="#s7">Formula &amp; mechanism sheet</a></li><li><a href="#s8">Practice — from the files</a></li><li><a href="#s9">Extra practice</a></li><li><a href="#s10">Fill in the blank</a></li><li><a href="#s11">Scenario questions</a></li>
       <li><a href="#b-lb">B1 Link budget → PRR</a></li><li><a href="#b-hy">B2 Hysteresis</a></li><li><a href="#b-en">B3 Energy</a></li><li><a href="#b-he">B4 Hidden/exposed</a></li><li><a href="#b-mac">B5 MAC rendezvous</a></li><li><a href="#b-ts">B6 TSCH hopping</a></li><li><a href="#b-q">B7 Schedule feasibility</a></li><li><a href="#b-lp">B8 6LoWPAN</a></li>
     </ol>
   </details>
@@ -1664,7 +1670,7 @@ PROCESS_THREAD(example_process, ev, data)
 <section class="part" id="s8">
   <div class="part-head"><div><span class="eyebrow">Self-test · from the course files</span><h2>8 · Practice questions — from the files</h2></div>
   <label class="done"><input type="checkbox" id="done-s8" data-sec="s8"> studied</label></div>
-  <p>Every question here appears in a course file: the WSN recitation sheet (<span class="src">Rec</span>), or a question, lab-interpretation or misconception slide in a deck (<span class="src">W4 lab s21</span> = Week 4 lab deck, slide 21). Where two files ask the same thing, the items are merged and both sources are listed. Recitation items that are scenarios are in <a class="xref" href="#s10">§10</a>. Answers follow the recitation and deck answer guides where they exist. Questions written for this guide are in <a class="xref" href="#s9">§9</a>.</p>
+  <p>Every question here appears in a course file: the WSN recitation sheet (<span class="src">Rec</span>), or a question, lab-interpretation or misconception slide in a deck (<span class="src">W4 lab s21</span> = Week 4 lab deck, slide 21). Where two files ask the same thing, the items are merged and both sources are listed. Recitation items that are scenarios are in <a class="xref" href="#s11">§11</a>. Answers follow the recitation and deck answer guides where they exist. Questions written for this guide are in <a class="xref" href="#s9">§9</a>.</p>
   <div class="qtools"><button type="button" id="openAll">Show all answers</button><button type="button" id="closeAll">Hide all answers</button></div>
 
   <h3 class="wk-h">Week 1 · Introduction &amp; hardware</h3>
@@ -1741,14 +1747,14 @@ PROCESS_THREAD(example_process, ev, data)
   <details class="q"><summary><span>A node switches to a new RPL parent. Which changes: its name, its IPv6 address, or its route?</span><span class="src">W6 self-check 1</span></summary><div class="a">The route (and its next hop). The name stays the same, and the IPv6 address normally does too. <a class="xref" href="#s6-1">§6.1</a></div></details>
   <details class="q"><summary><span>L = 200 bytes, M = 80, first-fragment header 4 bytes, later ones 5 bytes. How many fragments?</span><span class="src">W6 self-check 4</span></summary><div class="a">F₁ = 76, Fₙ = 75 → N = 1 + ceil(124 / 75) = 3 (still 3 with 8-byte alignment: 72 + 72 + 56). <a class="xref" href="#s6-5">§6.5</a> <a class="xref" href="#b-lp">B8</a></div></details>
   <details class="q"><summary><span>Each fragment arrives with p = 0.9. What is the chance a 4-fragment datagram arrives complete?</span><span class="src">W6 self-check 5</span></summary><div class="a">0.9⁴ = 0.6561 ≈ 65.6 %, so about one datagram in three is lost; correlated losses make it worse. <a class="xref" href="#s6-5">§6.5</a></div></details>
-  <p class="small">W6 self-check questions 2 and 3 are the same as recitation scenarios 3b and 3c, so they are in <a class="xref" href="#s10">§10</a>. Questions 6–10 are about Neighbor Discovery, CoAP and MQTT-SN, which this guide does not cover.</p>
+  <p class="small">W6 self-check questions 2 and 3 are the same as recitation scenarios 3b and 3c, so they are in <a class="xref" href="#s11">§11</a>. Questions 6–10 are about Neighbor Discovery, CoAP and MQTT-SN, which this guide does not cover.</p>
 </section>
 
 <!-- ============ 9 : WRITTEN FOR THIS GUIDE ============ -->
 <section class="part" id="s9">
   <div class="part-head"><div><span class="eyebrow">Self-test · guide additions</span><h2>9 · Extra practice (not in the files)</h2></div>
   <label class="done"><input type="checkbox" id="done-s9" data-sec="s9"> studied</label></div>
-  <p>These questions were written for this guide and its review/midterm bank. Anything already asked in a file (<a class="xref" href="#s8">§8</a>, <a class="xref" href="#s10">§10</a>) has been removed. Marks in brackets are suggested midterm weights; unmarked items suit the review session. Numbers marked <i>(illustrative)</i> are chosen for practice. The Show/Hide buttons in <a class="xref" href="#s8">§8</a> open every answer on the page.</p>
+  <p>These questions were written for this guide and its review/midterm bank. Anything already asked in a file (<a class="xref" href="#s8">§8</a>, <a class="xref" href="#s11">§11</a>) has been removed. Marks in brackets are suggested midterm weights; unmarked items suit the review session. Numbers marked <i>(illustrative)</i> are chosen for practice. The Show/Hide buttons in <a class="xref" href="#s8">§8</a> open every answer on the page.</p>
 
   <h3 class="wk-h" id="s9-w1">Week 1 · Introduction &amp; hardware</h3>
   <h4>End of lecture</h4>
@@ -1850,252 +1856,198 @@ PROCESS_THREAD(example_process, ev, data)
   <details class="q"><summary><span>Route-over vs mesh-under: which forwards fragments without reassembly, and which keeps IP-level diagnostics at every hop?</span></summary><div class="a">Mesh-under forwards below IP without reassembly; route-over exposes every hop to IP (traceroute) but usually reassembles per hop. <a class="xref" href="#s6-6">§6.6</a></div></details>
 </section>
 
-<!-- ============ 10 : SCENARIOS ============ -->
-<section class="part" id="s10">
-  <div class="part-head"><div><span class="eyebrow">Exam practice · multi-part</span><h2>10 · Scenario questions</h2></div>
+<!-- ============ 10 : FILL IN THE BLANK ============ -->
+<section class="part fb" id="s10">
+  <div class="part-head"><div><span class="eyebrow">Recall drill · 45 items</span><h2>10 · Fill in the blank</h2></div>
   <label class="done"><input type="checkbox" id="done-s10" data-sec="s10"> studied</label></div>
-  <p>Each scenario is answered with the pattern from <a class="xref" href="#s0-1">§0.1</a>: <b>(i) diagnosis · (ii) mechanism · (iii) numbers · (iv) trade-off (where the cost moves) · (v) fix or decision</b>. Scenarios 1–11 come from the course files (recitation sheet section 3 and the Week 4 case deck); scenarios 12–20 were written for this guide. Work each one through before opening the model answer. The Show/Hide buttons in <a class="xref" href="#s8">§8</a> open every answer on the page.</p>
+  <p>Quick recall of the terms, numbers and commands from the decks and labs. Say the missing word before you open it; the Show/Hide buttons in <a class="xref" href="#s8">§8</a> reveal every answer on the page.</p>
+
+  <h4>Week 1 · Introduction &amp; hardware</h4>
+  <details class="q"><summary><span><span class="num">1.</span>A small embedded node with sensing, computation and a radio is called a <span class="bl"></span>.</span></summary><div class="a"><b>mote</b> (sensor node) <a class="xref" href="#s1-1">§1.1</a></div></details>
+  <details class="q"><summary><span><span class="num">2.</span>The node that collects data and connects the WSN to other networks is the <span class="bl"></span>.</span></summary><div class="a"><b>sink</b> <span class="alt">(gateway / border router)</span> <a class="xref" href="#s1-1">§1.1</a></div></details>
+  <details class="q"><summary><span><span class="num">3.</span>The fraction of time a component is active is its <span class="bl"></span>.</span></summary><div class="a"><b>duty cycle</b> <a class="xref" href="#s1-1">§1.1</a></div></details>
+  <details class="q"><summary><span><span class="num">4.</span>The Sky/TelosB reference mote combines an MSP430 microcontroller with a <span class="bl"></span> radio.</span></summary><div class="a"><b>CC2420</b> (IEEE 802.15.4) <a class="xref" href="#s1-4">§1.4</a></div></details>
+  <details class="q"><summary><span><span class="num">5.</span>Contiki provides blocking-style code with very little memory through <span class="bl"></span>.</span></summary><div class="a"><b>protothreads</b> <a class="xref" href="#s1-5">§1.5</a></div></details>
+  <details class="q"><summary><span><span class="num">6.</span>Cooja is started with <code>cd ~/contiki/tools/cooja</code> followed by <span class="bl"></span>, never with sudo.</span></summary><div class="a"><b>ant run</b> <a class="xref" href="#s1-5">§1.5</a></div></details>
+  <details class="q"><summary><span><span class="num">7.</span>Reporting a value only when a physical condition occurs (smoke, vibration spike) is <span class="bl"></span> reporting.</span></summary><div class="a"><b>event-driven</b> <a class="xref" href="#s1-3">§1.3</a></div></details>
+
+  <h4>Week 2 · Radio &amp; PHY</h4>
+  <details class="q"><summary><span><span class="num">8.</span>0 dBm corresponds to <span class="bl"></span> mW.</span></summary><div class="a"><b>1</b> <a class="xref" href="#s2-1">§2.1</a></div></details>
+  <details class="q"><summary><span><span class="num">9.</span>In free space the path-loss exponent n equals <span class="bl"></span>.</span></summary><div class="a"><b>2</b> <a class="xref" href="#s2-2">§2.2</a></div></details>
+  <details class="q"><summary><span><span class="num">10.</span>Slow variation of received power caused by obstacles is called <span class="bl"></span>.</span></summary><div class="a"><b>shadowing</b> <a class="xref" href="#s2-2">§2.2</a></div></details>
+  <details class="q"><summary><span><span class="num">11.</span><span class="bl"></span> is the fraction of transmitted packets that actually arrive.</span></summary><div class="a"><b>PRR</b> (packet reception ratio) <a class="xref" href="#s2-3">§2.3</a></div></details>
+  <details class="q"><summary><span><span class="num">12.</span>The 802.15.4 2.4 GHz band has 16 channels, numbered 11 to <span class="bl"></span>.</span></summary><div class="a"><b>26</b> <a class="xref" href="#s2-5">§2.5</a></div></details>
+  <details class="q"><summary><span><span class="num">13.</span>The raw 802.15.4 2.4 GHz bit rate is <span class="bl"></span> kb/s.</span></summary><div class="a"><b>250</b> <a class="xref" href="#s2-5">§2.5</a></div></details>
+  <details class="q"><summary><span><span class="num">14.</span>Before transmitting, a node checks whether the channel looks busy with <span class="bl"></span>.</span></summary><div class="a"><b>CCA</b> (Clear-Channel Assessment) <a class="xref" href="#s2-5">§2.5</a></div></details>
+  <details class="q"><summary><span><span class="num">15.</span>Adding a neighbour above PRR 0.8 but dropping it only below 0.5 is called <span class="bl"></span>.</span></summary><div class="a"><b>hysteresis</b> <a class="xref" href="#s2-4">§2.4</a></div></details>
+  <details class="q"><summary><span><span class="num">16.</span>The Cooja radio medium with a sharp communication boundary is <span class="bl"></span>.</span></summary><div class="a"><b>UDGM</b> (Unit Disk Graph Medium) <a class="xref" href="#s2-6">§2.6</a></div></details>
+
+  <h4>Week 3 · Energy</h4>
+  <details class="q"><summary><span><span class="num">17.</span>1 mAh equals <span class="bl"></span> coulombs.</span></summary><div class="a"><b>3.6</b> <a class="xref" href="#s3-1">§3.1</a></div></details>
+  <details class="q"><summary><span><span class="num">18.</span>Power equals voltage multiplied by <span class="bl"></span>.</span></summary><div class="a"><b>current</b> (P = V·I) <a class="xref" href="#s3-1">§3.1</a></div></details>
+  <details class="q"><summary><span><span class="num">19.</span>A radio that is on but receives nothing useful is wasting energy through <span class="bl"></span>.</span></summary><div class="a"><b>idle listening</b> <a class="xref" href="#s3-3">§3.3</a></div></details>
+  <details class="q"><summary><span><span class="num">20.</span>First-order lifetime in hours = battery capacity (mAh) ÷ <span class="bl"></span> (mA).</span></summary><div class="a"><b>average current</b> <a class="xref" href="#s3-6">§3.6</a></div></details>
+  <details class="q"><summary><span><span class="num">21.</span>Energest records time spent in each state, not <span class="bl"></span>.</span></summary><div class="a"><b>current</b> <a class="xref" href="#s3-5">§3.5</a></div></details>
+  <details class="q"><summary><span><span class="num">22.</span>Powertrace is enabled with the Makefile line <code>APPS +=</code> <span class="bl"></span>.</span></summary><div class="a"><b>powertrace</b> <a class="xref" href="#s3-lab">Lab 3</a></div></details>
+  <details class="q"><summary><span><span class="num">23.</span>Lab scenario A keeps the radio always listening with the <span class="bl"></span> RDC driver; scenario B uses ContikiMAC.</span></summary><div class="a"><b>NullRDC</b> <span class="alt">(nullrdc_driver)</span> <a class="xref" href="#s3-lab">Lab 3</a></div></details>
+  <details class="q"><summary><span><span class="num">24.</span>A node that never consumes more than it harvests over its horizon achieves <span class="bl"></span> operation.</span></summary><div class="a"><b>energy-neutral</b> <a class="xref" href="#s3-7">§3.7</a></div></details>
+
+  <h4>Week 4 · MAC I: contention</h4>
+  <details class="q"><summary><span><span class="num">25.</span>Two senders that cannot hear each other but collide at a common receiver form the <span class="bl"></span> terminal problem.</span></summary><div class="a"><b>hidden</b> <a class="xref" href="#s4-3">§4.3</a></div></details>
+  <details class="q"><summary><span><span class="num">26.</span>A sender that defers unnecessarily because it hears a nearby transmission is an <span class="bl"></span> terminal.</span></summary><div class="a"><b>exposed</b> <a class="xref" href="#s4-3">§4.3</a></div></details>
+  <details class="q"><summary><span><span class="num">27.</span>Receiving a frame meant for another node is called <span class="bl"></span>.</span></summary><div class="a"><b>overhearing</b> <a class="xref" href="#s4-1">§4.1</a></div></details>
+  <details class="q"><summary><span><span class="num">28.</span>B-MAC sends a long, unaddressed <span class="bl"></span> before the data frame.</span></summary><div class="a"><b>preamble</b> <a class="xref" href="#s4-5">§4.5</a></div></details>
+  <details class="q"><summary><span><span class="num">29.</span>X-MAC stops its strobe train when the destination returns an <span class="bl"></span>.</span></summary><div class="a"><b>early ACK</b> <a class="xref" href="#s4-5">§4.5</a></div></details>
+  <details class="q"><summary><span><span class="num">30.</span>ContikiMAC repeats the full <span class="bl"></span> frame until it is acknowledged.</span></summary><div class="a"><b>data</b> <a class="xref" href="#s4-5">§4.5</a></div></details>
+  <details class="q"><summary><span><span class="num">31.</span>In RI-MAC, the <span class="bl"></span> starts the rendezvous by sending a beacon.</span></summary><div class="a"><b>receiver</b> <a class="xref" href="#s4-6">§4.6</a></div></details>
+  <details class="q"><summary><span><span class="num">32.</span>Without phase information, the expected rendezvous wait is about <span class="bl"></span> of the wake-up interval.</span></summary><div class="a"><b>half</b> (T_w / 2) <a class="xref" href="#s4-7">§4.7</a></div></details>
+
+  <h4>Week 5 · MAC II: scheduled &amp; hybrid</h4>
+  <details class="q"><summary><span><span class="num">33.</span>A repeating set of timeslots is called a <span class="bl"></span>.</span></summary><div class="a"><b>slotframe</b> <a class="xref" href="#s5-2">§5.2</a></div></details>
+  <details class="q"><summary><span><span class="num">34.</span>A TSCH cell is identified by its slot offset and its <span class="bl"></span> offset.</span></summary><div class="a"><b>channel</b> <a class="xref" href="#s5-6">§5.6</a></div></details>
+  <details class="q"><summary><span><span class="num">35.</span>ASN stands for <span class="bl"></span>.</span></summary><div class="a"><b>Absolute Slot Number</b> <a class="xref" href="#s5-6">§5.6</a></div></details>
+  <details class="q"><summary><span><span class="num">36.</span>The window a receiver listens around the expected arrival to tolerate clock error is the <span class="bl"></span>.</span></summary><div class="a"><b>guard time</b> <a class="xref" href="#s5-3">§5.3</a></div></details>
+  <details class="q"><summary><span><span class="num">37.</span>In 6TiSCH, neighbours add, delete or relocate cells with the <span class="bl"></span> protocol.</span></summary><div class="a"><b>6P</b> (6top Protocol) <a class="xref" href="#s5-7">§5.7</a></div></details>
+  <details class="q"><summary><span><span class="num">38.</span>Orchestra computes cells without negotiation, so it is an <span class="bl"></span> scheduler.</span></summary><div class="a"><b>autonomous</b> <a class="xref" href="#s5-7">§5.7</a></div></details>
+  <details class="q"><summary><span><span class="num">39.</span>WirelessHART is standardised as IEC <span class="bl"></span>.</span></summary><div class="a"><b>62591</b> <span class="alt">(ISA100.11a = IEC 62734)</span> <a class="xref" href="#s5-8">§5.8</a></div></details>
+
+  <h4>Week 6 · Naming &amp; 6LoWPAN (to slide 31)</h4>
+  <details class="q"><summary><span><span class="num">40.</span>6LoWPAN stands for IPv6 over Low-Power Wireless <span class="bl"></span> Area Networks.</span></summary><div class="a"><b>Personal</b> <a class="xref" href="#s6-3">§6.3</a></div></details>
+  <details class="q"><summary><span><span class="num">41.</span>IPv6 requires every link to carry packets of at least <span class="bl"></span> bytes.</span></summary><div class="a"><b>1280</b> <a class="xref" href="#s6-3">§6.3</a></div></details>
+  <details class="q"><summary><span><span class="num">42.</span>The maximum IEEE 802.15.4 frame is <span class="bl"></span> bytes.</span></summary><div class="a"><b>127</b> <a class="xref" href="#s6-3">§6.3</a></div></details>
+  <details class="q"><summary><span><span class="num">43.</span>Uncompressed IPv6 plus UDP headers take <span class="bl"></span> bytes.</span></summary><div class="a"><b>48</b> (40 + 8) <a class="xref" href="#s6-3">§6.3</a></div></details>
+  <details class="q"><summary><span><span class="num">44.</span>The first-fragment header is <span class="bl"></span> bytes; later fragment headers are 5 bytes.</span></summary><div class="a"><b>4</b> <a class="xref" href="#s6-5">§6.5</a></div></details>
+  <details class="q"><summary><span><span class="num">45.</span>In <span class="bl"></span> forwarding, every radio hop is also an IP hop.</span></summary><div class="a"><b>route-over</b> <a class="xref" href="#s6-6">§6.6</a></div></details>
+</section>
+
+<!-- ============ 11 : SCENARIOS ============ -->
+<section class="part" id="s11">
+  <div class="part-head"><div><span class="eyebrow">Exam practice · applied</span><h2>11 · Scenario questions</h2></div>
+  <label class="done"><input type="checkbox" id="done-s11" data-sec="s11"> studied</label></div>
+  <p>Each answer is short: a calculation or a brief explanation. Scenarios 1–11 come from the course files (recitation section 3 and the Week 4 case deck); scenarios 12–20 were written for this guide. The Show/Hide buttons in <a class="xref" href="#s8">§8</a> open every answer on the page.</p>
 
   <h3 class="wk-h">From the files</h3>
 
   <div class="scenario">
     <h4><span class="sc">Scenario 1</span>Three frames, one packet <span class="src">Rec 3a</span></h4>
-    <p class="setup">A packet goes A → R1 → R2 → S with route-over forwarding.</p>
-    <p class="ask"><b>Q:</b> For each of the three frames, give the link-layer source/destination, the IPv6 source/destination and the Hop Limit (starting at 64).</p>
-    <details class="q"><summary>Model answer</summary><div class="a"><ul>
-      <li><b>Frame 1</b> — link A → R1, IPv6 A → S, Hop Limit 64.</li>
-      <li><b>Frame 2</b> — link R1 → R2, IPv6 A → S, Hop Limit 63.</li>
-      <li><b>Frame 3</b> — link R2 → S, IPv6 A → S, Hop Limit 62.</li>
-      <li><b>Mechanism</b> — link-layer addresses are rewritten every hop; IPv6 endpoints are end-to-end; each IP hop decrements Hop Limit (0 → drop, bounding loops). <a class="xref" href="#s6-1">§6.1</a></li>
-      <li><b>Compression note</b> — after the first hop, 64 becomes 63, which no longer matches an HLIM code and costs 1 inline byte. <a class="xref" href="#s6-4">§6.4</a></li>
-    </ul></div></details>
+    <p class="setup">A packet goes A → R1 → R2 → S with route-over forwarding. For each of the three frames, give the link-layer source/destination, the IPv6 source/destination and the Hop Limit (starting at 64).</p>
+    <details class="q"><summary>Answer</summary><div class="a"><p>Frame 1: A → R1, A → S, 64. Frame 2: R1 → R2, A → S, 63. Frame 3: R2 → S, A → S, 62. Link addresses change every hop; the IPv6 endpoints stay the same. <a class="xref" href="#s6-1">§6.1</a></p></div></details>
   </div>
 
   <div class="scenario">
     <h4><span class="sc">Scenario 2</span>Best-case header compression <span class="src">Rec 3b · W6 self-check 2</span></h4>
-    <p class="setup">In the best case, LOWPAN_IPHC compresses the IPv6 header to 2 bytes and LOWPAN_NHC compresses UDP to 4 bytes.</p>
-    <p class="ask"><b>Q:</b> Compute the saving and percentage, and state three conditions needed.</p>
-    <details class="q"><summary>Model answer</summary><div class="a"><ul>
-      <li><b>(iii) Numbers</b> — 48 → 6 bytes; saving 42 bytes = 87.5 %.</li>
-      <li><b>(ii) Conditions</b> — any three: link-local or context prefixes with IIDs from the radio address; traffic class and flow label zero; Hop Limit 1, 64 or 255; both UDP ports in 0xF0B0–0xF0BF.</li>
-      <li><b>(iv) Caveat</b> — this is a best case, not a packet size: a global destination without context and port 5683 gives ≈ 24 bytes (50 %). <a class="xref" href="#s6-4">§6.4</a> <a class="xref" href="#b-lp">B8</a></li>
-    </ul></div></details>
+    <p class="setup">In the best case, IPHC compresses the IPv6 header to 2 bytes and NHC compresses UDP to 4 bytes. Compute the saving and percentage, and state three conditions needed.</p>
+    <details class="q"><summary>Answer</summary><div class="a"><p>48 → 6 bytes: saving 42 bytes = 42 / 48 = 87.5 %. Conditions (any three): link-local or context prefixes with IIDs from the radio address; traffic class and flow label zero; Hop Limit 1, 64 or 255; both UDP ports in 0xF0B0–0xF0BF. <a class="xref" href="#s6-4">§6.4</a></p></div></details>
   </div>
 
   <div class="scenario">
     <h4><span class="sc">Scenario 3</span>Does 50 bytes fit? <span class="src">Rec 3c · W6 self-check 3</span></h4>
-    <p class="setup">The effective frame capacity is M = 80 bytes.</p>
-    <p class="ask"><b>Q:</b> How much application data fits with uncompressed and with best-case compressed headers? Does a 50-byte message need fragmentation in each case?</p>
-    <details class="q"><summary>Model answer</summary><div class="a"><ul>
-      <li><b>(iii) Room for data</b> — 80 − 48 = 32 bytes; 80 − 6 = 74 bytes.</li>
-      <li><b>Uncompressed</b> — 48 + 50 = 98 bytes → 2 fragments.</li>
-      <li><b>Compressed</b> — 6 + 50 = 56 bytes → one frame.</li>
-      <li><b>(iv) Why it matters</b> — one frame instead of two saves a transmission, ACK and backoff, needs no reassembly buffer, and at p = 0.9 raises success from 81 % to 90 %. <a class="xref" href="#s6-4">§6.4</a></li>
-    </ul></div></details>
+    <p class="setup">The effective frame capacity is M = 80 bytes. How much application data fits with uncompressed and with best-case compressed headers? Does a 50-byte message need fragmentation in each case?</p>
+    <details class="q"><summary>Answer</summary><div class="a"><p>80 − 48 = 32 bytes; 80 − 6 = 74 bytes. Uncompressed: 48 + 50 = 98 &gt; 80 → 2 fragments. Compressed: 6 + 50 = 56 ≤ 80 → one frame. <a class="xref" href="#s6-4">§6.4</a></p></div></details>
   </div>
 
   <div class="scenario">
     <h4><span class="sc">Scenario 4</span>A network that looks healthy <span class="src">Rec 3d</span></h4>
-    <p class="setup">A factory sensor has strong RSSI, but only 55 % of its packets arrive at the gateway.</p>
-    <p class="ask"><b>Q:</b> Would increasing transmission power necessarily solve the problem? What would you investigate first?</p>
-    <details class="q"><summary>Model answer</summary><div class="a"><ul>
-      <li><b>(i) Diagnosis</b> — received power is not link reliability: strong RSSI with low PRR points to collisions, interference or noise, not weak signal.</li>
-      <li><b>(ii) Mechanism</b> — RSSI includes interfering energy and says nothing about lost frames; a metal-rich factory adds multipath and 2.4 GHz coexistence (Wi-Fi). <a class="xref" href="#s2-3">§2.3</a></li>
-      <li><b>(iii) Measure</b> — noise floor and SNR, PRR in both directions (ACK path), retransmission and missing-ACK counts, Timeline overlaps, channel occupancy.</li>
-      <li><b>(iv) Trade-off</b> — more TX power costs energy and cannot remove collisions, asymmetry or interference; it can even raise interference for neighbours.</li>
-      <li><b>(v) Fix</b> — investigate interference, collisions, noise and directional PRR before changing power; then change channel / hop, schedule, or reposition the antenna.</li>
-    </ul></div></details>
+    <p class="setup">A factory sensor has strong RSSI, but only 55 % of its packets arrive at the gateway. Would increasing transmission power necessarily solve the problem? What would you investigate first?</p>
+    <details class="q"><summary>Answer</summary><div class="a"><p>No. Strong RSSI shows received power, not reliability, so the losses point to interference, collisions or noise; more power cannot fix those. Investigate the noise floor, collisions and PRR in both directions (including ACKs) before changing power. <a class="xref" href="#s2-3">§2.3</a></p></div></details>
   </div>
 
   <div class="scenario">
     <h4><span class="sc">Scenario 5</span>Energy versus emergency response <span class="src">Rec 3e</span></h4>
-    <p class="setup">A battery-powered smoke detector sleeps most of the time. Its wake-up interval is increased from 100 ms to 1,000 ms to conserve energy.</p>
-    <p class="ask"><b>Q:</b> What changes when the device needs to transmit an urgent alarm through three hops?</p>
-    <details class="q"><summary>Model answer</summary><div class="a"><ul>
-      <li><b>(ii) Mechanism</b> — asynchronous rendezvous: each hop waits on average T_w / 2 for the next receiver’s check. <a class="xref" href="#s4-7">§4.7</a></li>
-      <li><b>(iii) Numbers</b> — mean waiting component 3 × 50 ms = 150 ms → 3 × 500 ms = 1,500 ms (worst case ≈ 3 s), excluding transmission, processing and retry delays. Receiver idle duty falls 10× (e.g. 5 ms checks: 5 % → 0.5 %).</li>
-      <li><b>(iv) Trade-off</b> — receiver idle energy decreases, but alarm latency grows tenfold and each sender repeats for longer.</li>
-      <li><b>(v) Decision</b> — keep the short interval on the alarm path, or use phase lock / a scheduled alarm track; tie T_w to the alarm deadline, not only to battery life.</li>
-    </ul></div></details>
+    <p class="setup">A battery-powered smoke detector sleeps most of the time. Its wake-up interval is increased from 100 ms to 1,000 ms to save energy. What changes when it must send an urgent alarm through three hops?</p>
+    <details class="q"><summary>Answer</summary><div class="a"><p>Receiver idle energy falls, but each hop waits about T_w / 2: 3 × 50 ms = 150 ms becomes 3 × 500 ms = 1,500 ms of waiting, before transmission, processing and retries. <a class="xref" href="#s4-7">§4.7</a></p></div></details>
   </div>
 
   <div class="scenario">
     <h4><span class="sc">Scenario 6</span>Reliable packets, unreliable datagrams <span class="src">Rec 3f</span></h4>
-    <p class="setup">A sensor sends a 60-byte application payload. The available 802.15.4 frame budget is 80 bytes. Uncompressed IPv6/UDP headers need 48 bytes; best-case compression needs 6 bytes.</p>
-    <p class="ask"><b>Q:</b> Which configuration needs fragmentation, and how does this affect delivery probability if every fragment succeeds independently with probability 0.8?</p>
-    <details class="q"><summary>Model answer</summary><div class="a"><ul>
-      <li><b>(iii) Uncompressed</b> — 108 bytes → 2 fragments → 0.8² = 64 % datagram success without retries.</li>
-      <li><b>(iii) Compressed</b> — 66 bytes fits one frame → 80 %.</li>
-      <li><b>(ii) Mechanism</b> — a datagram needs every fragment; P = pᴺ, with no per-fragment recovery. <a class="xref" href="#s6-5">§6.5</a></li>
-      <li><b>(iv) Trade-off</b> — retries raise success but cost energy and delay; correlated losses make 64 % optimistic.</li>
-      <li><b>(v) Fix</b> — compress, use compact encodings, or send smaller batches so the message fits one frame. <a class="xref" href="#b-lp">B8</a></li>
-    </ul></div></details>
+    <p class="setup">A sensor sends a 60-byte payload. The frame budget is 80 bytes; uncompressed IPv6/UDP headers need 48 bytes and best-case compression needs 6. Which configuration fragments, and what is the delivery probability if each fragment succeeds with p = 0.8?</p>
+    <details class="q"><summary>Answer</summary><div class="a"><p>Uncompressed: 108 bytes → 2 fragments → 0.8² = 64 %. Compressed: 66 bytes → 1 frame → 80 %. <a class="xref" href="#s6-5">§6.5</a></p></div></details>
   </div>
 
   <div class="scenario">
     <h4><span class="sc">Scenario 7</span>200 agricultural sensors <span class="src">Rec 3g · answer written for this guide</span></h4>
-    <p class="setup">You must deploy 200 battery-powered agricultural sensors. They transmit every 10 minutes, but irrigation-failure alarms require rapid, reliable delivery.</p>
-    <p class="ask"><b>Q:</b> Which MAC strategy would you select, and what measurements would justify your choice?</p>
-    <details class="q"><summary>Model answer</summary><div class="a"><ul>
-      <li><b>(i) Diagnosis</b> — two traffic classes: sparse periodic telemetry (λ = 1/600 pkt/s per node, more near the gateway) and rare, deadline-bound alarms.</li>
-      <li><b>(iii) Numbers</b> — for telemetry alone, ContikiMAC’s optimum is T_w* = √(2T_c/λ) ≈ √(2 × 0.005 × 600) ≈ 2.4 s, giving ≈ 1.2 s per hop of waiting: too slow for alarms over several hops. <a class="xref" href="#s4-7">§4.7</a></li>
-      <li><b>(iv) Trade-off</b> — a short interval for everyone wastes idle listening on 200 nodes; a long one misses the alarm deadline.</li>
-      <li><b>(v) Decision</b> — either (a) ContikiMAC with phase lock and T_w sized to the alarm deadline (e.g. 250–500 ms) plus link-layer retries; or (b) a hybrid TSCH schedule with dedicated cells for periodic convergecast, extra cells near the gateway, and a reserved alarm track or shared cells. Justify with: directional PRR per link, Energest radio duty cycle and lifetime estimate, alarm end-to-end latency distribution over H hops, queue/utilisation at relays near the gateway, PDR.</li>
-    </ul></div></details>
+    <p class="setup">You must deploy 200 battery-powered agricultural sensors. They transmit every 10 minutes, but irrigation-failure alarms require rapid, reliable delivery. Which MAC strategy would you select, and what measurements would justify your choice?</p>
+    <details class="q"><summary>Answer</summary><div class="a"><p>Use a duty-cycled MAC whose wake-up interval is set by the alarm deadline, not by the rare periodic traffic: e.g. ContikiMAC with phase lock and retries, or a TSCH schedule with extra cells (an alarm path) near the gateway. Justify it with measured PRR in both directions, radio duty cycle and estimated lifetime, alarm end-to-end latency, and PDR. <a class="xref" href="#s4-7">§4.7</a></p></div></details>
   </div>
 
   <div class="scenario">
     <h4><span class="sc">Scenario 8</span>100 sent, 73 logged <span class="src">Rec 3h</span></h4>
-    <p class="setup">Your sender transmitted 100 numbered frames, but the receiver logged 73.</p>
-    <p class="ask"><b>Q:</b> What can you calculate, and what can you not conclude?</p>
-    <details class="q"><summary>Model answer</summary><div class="a"><ul>
-      <li><b>(iii) Calculate</b> — PRR = 73 / 100 = 73 % over this window; the missing sequence numbers show whether losses are spread out or come in bursts.</li>
-      <li><b>(i) Cannot conclude</b> — the cause: weak signal, collisions, interference, a sleeping receiver or the radio model are indistinguishable from the count alone; and one 100-frame window is an estimate, not the true delivery probability.</li>
-      <li><b>(v) Next step</b> — log RSSI/LQI and noise, check overlaps in the Timeline, repeat with a longer window, and state the radio medium. <a class="xref" href="#s2-3">§2.3</a></li>
-    </ul></div></details>
+    <p class="setup">Your sender transmitted 100 numbered frames, but the receiver logged 73. What can you calculate, and what can you not conclude?</p>
+    <details class="q"><summary>Answer</summary><div class="a"><p>PRR = 73 / 100 = 73 %. The cause of the losses (weak signal, collisions, interference, a sleeping receiver) is not established by the count alone. <a class="xref" href="#s2-3">§2.3</a></p></div></details>
   </div>
 
   <div class="scenario">
     <h4><span class="sc">Scenario 9</span>Chest, back and a hip hub <span class="src">W4 case deck s19</span></h4>
-    <p class="setup">Put one mote on a volunteer’s chest, one on the back, and a hub at the hip.</p>
-    <p class="ask"><b>Q:</b> Predict the collision rate as the volunteer turns around, then explain what you would measure.</p>
-    <details class="q"><summary>Model answer</summary><div class="a"><ul>
-      <li><b>(i) Diagnosis</b> — the torso blocks chest ↔ back at 2.4 GHz while both reach the hip hub around the side: a hidden-terminal pair.</li>
-      <li><b>(ii) Mechanism</b> — CCA at each sensor reports idle, so concurrent reports collide at the hub; shadowing follows posture, so hidden pairs appear and vanish as the volunteer turns.</li>
-      <li><b>(iii) Measure</b> — PRR and collisions at the hub versus body orientation; RSSI chest↔back to confirm they cannot sense each other.</li>
-      <li><b>(v) Fix</b> — scheduled slots from the hub (802.15.6 beacon mode), so the body’s nodes never contend. <a class="xref" href="#s4-8">§4.8</a></li>
-    </ul></div></details>
+    <p class="setup">One mote is on a volunteer’s chest, one on the back, and a hub at the hip. What happens to collisions as the volunteer turns, and how would you remove them?</p>
+    <details class="q"><summary>Answer</summary><div class="a"><p>The torso blocks chest ↔ back while both still reach the hip hub, so they are hidden terminals; collisions at the hub change with posture. Give each sensor a scheduled slot from the hub so they never contend. <a class="xref" href="#s4-8">§4.8</a></p></div></details>
   </div>
 
   <div class="scenario">
     <h4><span class="sc">Scenario 10</span>10,000 meters on the quarter hour <span class="src">W4 case deck s19</span></h4>
-    <p class="setup">A utility reads 10,000 meters at :00, :15, :30 and :45.</p>
-    <p class="ask"><b>Q:</b> Propose the cheapest change that cuts hidden-node collisions. What does it cost billing?</p>
-    <details class="q"><summary>Model answer</summary><div class="a"><ul>
-      <li><b>(i) Diagnosis</b> — walls and floors create hidden pairs; synchronised reporting turns an occasional collision into one every interval.</li>
-      <li><b>(v) Fix</b> — random jitter on each meter’s report time within the interval (cheapest; no protocol change).</li>
-      <li><b>(iv) Cost</b> — readings arrive spread out, so each must be timestamped at the meter for billing.</li>
-      <li><b>Alternatives</b> — TSCH dedicated cells with channel hopping; level-alternating time frames; backoff tuning. <a class="xref" href="#s4-8">§4.8</a></li>
-    </ul></div></details>
+    <p class="setup">A utility reads 10,000 meters at :00, :15, :30 and :45. What is the cheapest change that cuts hidden-node collisions, and what does it cost billing?</p>
+    <details class="q"><summary>Answer</summary><div class="a"><p>Add random jitter to each meter’s reporting time so hidden pairs stop transmitting at the same instant. Readings then arrive spread out, so each must be timestamped at the meter. <a class="xref" href="#s4-8">§4.8</a></p></div></details>
   </div>
 
   <div class="scenario">
     <h4><span class="sc">Scenario 11</span>Two drones, two fields <span class="src">W4 case deck s19</span></h4>
-    <p class="setup">Two drones serve two fields from 30 m up.</p>
-    <p class="ask"><b>Q:</b> Should they carrier-sense each other at all? Argue both sides with the exposed-terminal picture.</p>
-    <details class="q"><summary>Model answer</summary><div class="a"><ul>
-      <li><b>For sensing</b> — it protects the rare case where the two clusters overlap on the ground.</li>
-      <li><b>Against</b> — in clear air every drone hears every drone, while the ground clusters in the crop barely hear the other drone, so deferring is usually an exposed-terminal loss.</li>
-      <li><b>(v) Decision</b> — a schedule or a separate channel per drone usually wins over carrier sense between drones. <a class="xref" href="#s4-8">§4.8</a></li>
-    </ul></div></details>
+    <p class="setup">Two drones serve two fields from 30 m up. Should they carrier-sense each other?</p>
+    <details class="q"><summary>Answer</summary><div class="a"><p>Usually not: in clear air they always hear each other, while their ground clusters barely interfere, so deferring is an exposed-terminal loss. A separate channel or schedule per drone is better; carrier sense only helps when the clusters overlap. <a class="xref" href="#s4-8">§4.8</a></p></div></details>
   </div>
 
   <h3 class="wk-h">Written for this guide</h3>
 
   <div class="scenario">
     <h4><span class="sc">Scenario 12</span>A firmware bug that keeps the radio awake <i>(illustrative)</i></h4>
-    <p class="setup">A node’s radio normally listens 2 % of the time at 19 mA; everything else together draws about 0.05 mA. The battery is 2000 mAh. After a firmware update, a bug keeps the radio listening 10 % of the time.</p>
-    <ol class="subq"><li>Estimate the lifetime before and after the update.</li><li>Which component should be checked first, and why?</li></ol>
-    <details class="q"><summary>Model answer</summary><div class="a"><ul>
-      <li><b>(iii) Before</b> — 19 × 0.02 + 0.05 = 0.43 mA → 2000 / 0.43 ≈ 4 650 h ≈ 194 days.</li>
-      <li><b>(iii) After</b> — 19 × 0.10 + 0.05 = 1.95 mA → 2000 / 1.95 ≈ 1 030 h ≈ 43 days.</li>
-      <li><b>(i) Diagnosis</b> — the radio listen term is the dominant consumer, so a small change in its duty cycle changes lifetime by a factor of ≈ 4.5. <a class="xref" href="#s3-4">§3.4</a></li>
-      <li><b>(v) Fix</b> — check the RDC configuration and Energest LISTEN ticks first; the CPU and sensor terms are too small to explain the drop.</li>
-    </ul></div></details>
+    <p class="setup">A node’s radio normally listens 2 % of the time at 19 mA; everything else draws about 0.05 mA. The battery is 2000 mAh. A firmware bug raises listening to 10 %. Estimate the lifetime before and after.</p>
+    <details class="q"><summary>Answer</summary><div class="a"><p>Before: 19 × 0.02 + 0.05 = 0.43 mA → 2000 / 0.43 ≈ 4 650 h ≈ 194 days. After: 19 × 0.10 + 0.05 = 1.95 mA → 2000 / 1.95 ≈ 1 030 h ≈ 43 days. <a class="xref" href="#s3-4">§3.4</a></p></div></details>
   </div>
 
   <div class="scenario">
     <h4><span class="sc">Scenario 13</span>Which parent?</h4>
-    <p class="setup">A node chooses between two parents. P1’s advertisements arrive with strong RSSI, but the node’s data frames to P1 often go unacknowledged. P2’s advertisements are weaker, yet data and ACKs succeed reliably in both directions.</p>
-    <p class="ask"><b>Q:</b> Which parent should it choose, and why might a naive implementation pick the other?</p>
-    <details class="q"><summary>Model answer</summary><div class="a"><ul>
-      <li><b>(v) Decision</b> — choose P2.</li>
-      <li><b>(i) Why the mistake</b> — judging the link by advertisement RSSI measures only one direction; the exchange also needs the ACK to come back. <a class="xref" href="#s2-4">§2.4</a></li>
-      <li><b>(ii) Mechanism</b> — the P1 link is asymmetric (different noise floor, interference near one end, antenna orientation), so data or ACKs are lost on the return path.</li>
-      <li><b>(iv) Cost</b> — every lost ACK triggers a retransmission, and under LPL each retry may need a new rendezvous, so P1 costs more energy per delivered packet.</li>
-    </ul></div></details>
+    <p class="setup">P1’s advertisements arrive with strong RSSI, but data frames to P1 often go unacknowledged. P2’s advertisements are weaker, yet data and ACKs succeed in both directions. Which parent should the node choose?</p>
+    <details class="q"><summary>Answer</summary><div class="a"><p>P2. The P1 link is asymmetric: advertisement RSSI measures only one direction, and the lost ACKs cause retransmissions that cost energy. <a class="xref" href="#s2-4">§2.4</a></p></div></details>
   </div>
 
   <div class="scenario">
     <h4><span class="sc">Scenario 14</span>A cell stuck under Wi-Fi</h4>
-    <p class="setup">A TSCH network uses the 16-channel hopping sequence with a slotframe of 16 slots. One link loses about 60 % of its frames; neighbouring links are fine. A Wi-Fi access point on channel 1 is nearby.</p>
-    <p class="ask"><b>Q:</b> Explain the losses and propose two fixes.</p>
-    <details class="q"><summary>Model answer</summary><div class="a"><ul>
-      <li><b>(ii) Mechanism</b> — with S = N_c = 16, gcd = 16, so each cell always lands on the same physical channel: no hopping. <a class="xref" href="#s5-6">§5.6</a></li>
-      <li><b>(i) Diagnosis</b> — Wi-Fi channel 1 (centre 2412 MHz, ≈ 22 MHz wide) overlaps 802.15.4 channels 11–14; the affected cell sits on one of them every time.</li>
-      <li><b>(v) Fixes</b> — choose a slotframe length coprime to 16 (e.g. 17 or 101) so cells rotate through all channels; and/or blacklist channels 11–14.</li>
-      <li><b>(iv) Trade-off</b> — blacklisting reduces the channel pool and spatial reuse; hopping spreads the loss over all links instead of concentrating it. <a class="xref" href="#b-ts">B6</a></li>
-    </ul></div></details>
+    <p class="setup">A TSCH network uses 16 hopping channels and a 16-slot slotframe. One link loses about 60 % of its frames next to a Wi-Fi access point on channel 1. Explain and fix.</p>
+    <details class="q"><summary>Answer</summary><div class="a"><p>With S = N_c = 16 each cell always lands on the same physical channel, so it never hops away from the Wi-Fi overlap (802.15.4 channels 11–14). Use a slotframe length coprime to 16 (e.g. 17 or 101) or blacklist channels 11–14. <a class="xref" href="#s5-6">§5.6</a></p></div></details>
   </div>
 
   <div class="scenario">
     <h4><span class="sc">Scenario 15</span>The relay next to the root</h4>
-    <p class="setup">A relay forwards for 5 children, each producing a packet per slotframe with probability 0.6. The relay owns 3 uplink cells; each succeeds with probability 0.9.</p>
-    <p class="ask"><b>Q:</b> Is the schedule feasible? If not, how many cells are needed?</p>
-    <details class="q"><summary>Model answer</summary><div class="a"><ul>
-      <li><b>(iii) Numbers</b> — λ = 5 × 0.6 = 3.0 per frame; μ = 3 × 0.9 = 2.7; ρ ≈ 1.11 &gt; 1 → the queue grows without bound.</li>
-      <li><b>(v) Fix</b> — 4 cells: μ = 3.6, ρ ≈ 0.83 (stable with headroom).</li>
-      <li><b>(iv) Trade-off</b> — every extra cell is a scheduled wake-up (energy) even when the queue is empty; MSF-style adaptation adds cells when the queue rises and removes them when utilisation falls. <a class="xref" href="#s5-9">§5.9</a> <a class="xref" href="#b-q">B7</a></li>
-    </ul></div></details>
+    <p class="setup">A relay forwards for 5 children, each producing a packet per slotframe with probability 0.6. It owns 3 uplink cells, each succeeding with probability 0.9. Is the schedule feasible?</p>
+    <details class="q"><summary>Answer</summary><div class="a"><p>λ = 5 × 0.6 = 3.0, μ = 3 × 0.9 = 2.7, so ρ ≈ 1.11 &gt; 1: the queue grows. With 4 cells, μ = 3.6 and ρ ≈ 0.83 (stable). <a class="xref" href="#s5-9">§5.9</a></p></div></details>
   </div>
 
   <div class="scenario">
     <h4><span class="sc">Scenario 16</span>A 1200-byte log upload <i>(illustrative)</i></h4>
-    <p class="setup">A node must upload a 1200-byte log. Usable 6LoWPAN space per frame is M = 81 bytes (long addresses + AES-CCM-128). Each frame succeeds with p = 0.95.</p>
-    <p class="ask"><b>Q:</b> Compare one fragmented datagram with CoAP Block-Wise Transfer.</p>
-    <details class="q"><summary>Model answer</summary><div class="a"><ul>
-      <li><b>(iii) Fragments</b> — aligned payloads 72 bytes each (81 − 4 or 5, rounded down to a multiple of 8): N = 17 fragments → 0.95¹⁷ ≈ 42 % per attempt; a failure resends all 17.</li>
-      <li><b>(ii) Block-Wise</b> — Block2 with frame-sized blocks: each block is an independent exchange, retried alone; nothing delivered is discarded.</li>
-      <li><b>(iv) Trade-off</b> — blocks add per-block CoAP headers and round trips, but avoid failure amplification and reassembly buffers (up to 1280 bytes) on the receiver.</li>
-      <li><b>(v) Decision</b> — use Block-Wise; also prefer compact binary encoding. <a class="xref" href="#s6-5">§6.5</a></li>
-    </ul></div></details>
+    <p class="setup">A 1200-byte log must be sent with M = 81 bytes per frame and p = 0.95 per frame. Compare one fragmented datagram with CoAP Block-Wise Transfer.</p>
+    <details class="q"><summary>Answer</summary><div class="a"><p>Fragmented: 72-byte aligned payloads → 17 fragments → 0.95¹⁷ ≈ 42 % per attempt, and one loss resends everything. Block-Wise sends independent blocks that are retried one at a time, so nothing delivered is wasted. <a class="xref" href="#s6-5">§6.5</a></p></div></details>
   </div>
 
   <div class="scenario">
     <h4><span class="sc">Scenario 17</span>The prefix changed overnight</h4>
-    <p class="setup">The border router’s global prefix changes from 2001:db8:100::/64 to 2001:db8:200::/64. Nodes that missed the update keep compressing with context ID 1. Their packets start arriving at the wrong destination or not at all.</p>
-    <p class="ask"><b>Q:</b> Explain the failure and how to prevent it.</p>
-    <details class="q"><summary>Model answer</summary><div class="a"><ul>
-      <li><b>(ii) Mechanism</b> — stateful compression sends “context 1” instead of the 64-bit prefix; sender and receiver must hold the same mapping.</li>
-      <li><b>(i) Diagnosis</b> — a stale context makes the receiver rebuild the wrong address, so decompression silently produces a different IPv6 address.</li>
-      <li><b>(iv) Trade-off</b> — stateful compression saves bytes by creating shared state, an operational dependency.</li>
-      <li><b>(v) Fix</b> — distribute contexts reliably (Router Advertisements with lifetimes), phase changes in with a new context ID before retiring the old one, or fall back to stateless or inline addresses during transitions. <a class="xref" href="#s6-4">§6.4</a></li>
-    </ul></div></details>
+    <p class="setup">The border router’s prefix changes, but some nodes keep compressing with the old context ID 1. Their packets go to the wrong address or disappear. Why?</p>
+    <details class="q"><summary>Answer</summary><div class="a"><p>Stateful compression sends a context ID instead of the prefix; with a stale context, the receiver rebuilds the wrong address. Contexts must be distributed and kept consistent, with new IDs phased in before old ones are retired. <a class="xref" href="#s6-4">§6.4</a></p></div></details>
   </div>
 
   <div class="scenario">
     <h4><span class="sc">Scenario 18</span>An unfair Powertrace comparison</h4>
-    <p class="setup">A lab report claims ContikiMAC uses 30 % more energy than NullRDC. Scenario A was measured over the first 2 minutes after boot; scenario B over minutes 10–15, after the student moved the client further away.</p>
-    <p class="ask"><b>Q:</b> Critique the method and state what a valid comparison requires.</p>
-    <details class="q"><summary>Model answer</summary><div class="a"><ul>
-      <li><b>(i) Diagnosis</b> — two variables changed (RDC and distance), and the windows differ (start-up vs steady state, 2 vs 5 minutes).</li>
-      <li><b>(ii) Mechanism</b> — start-up activity (network formation) inflates counters; a longer link can cause retransmissions that raise TX and listen time.</li>
-      <li><b>(v) Valid method</b> — same topology, radio medium and send interval; discard warm-up; equal-length windows using differences of cumulative counters; report raw ticks, duty cycles, assumed currents and PDR.</li>
-      <li><b>(iv) Interpretation</b> — expected result: NullRDC listens ≈ 100 %, so ContikiMAC should use far less energy. <a class="xref" href="#s3-lab">Lab 3</a></li>
-    </ul></div></details>
+    <p class="setup">A report claims ContikiMAC uses more energy than NullRDC. Scenario A was measured in the first 2 minutes after boot; scenario B in minutes 10–15, after the client was moved further away. What is wrong?</p>
+    <details class="q"><summary>Answer</summary><div class="a"><p>Two things changed (RDC and distance) and the windows differ (start-up vs steady state, different lengths). Keep topology and interval fixed, discard warm-up, and compare equal windows; NullRDC should then show far more listening. <a class="xref" href="#s3-lab">Lab 3</a></p></div></details>
   </div>
 
   <div class="scenario">
     <h4><span class="sc">Scenario 19</span>The hidden terminal that would not appear</h4>
-    <p class="setup">In the Cooja hidden-terminal lab, a student places A and C 70 units apart with B in the middle (35 each). UDGM transmission range is 50 and interference range is 100. The Timeline shows no overlaps and PRR is 100 %.</p>
-    <p class="ask"><b>Q:</b> Why did the hidden terminal not appear, and how should the topology change?</p>
-    <details class="q"><summary>Model answer</summary><div class="a"><ul>
-      <li><b>(i) Diagnosis</b> — A and C are 70 apart: beyond the 50-unit transmission range but inside the 100-unit interference range. Each still receives the other’s signal energy, so CCA reports busy and the clients serialise. They are not hidden from each other.</li>
-      <li><b>(ii) Mechanism</b> — in UDGM, radios inside the interference range receive energy from a transmission they cannot decode, which carrier sensing detects. The deck’s troubleshooting slide says the same: if A and C still hear each other, move them farther apart.</li>
-      <li><b>(v) Fix</b> — increase A–C beyond the interference range (or reduce the interference range) while keeping A–B and C–B within 50, e.g. range 50 / interference 50 with A–B = B–C = 40 and A–C = 80; run longer so transmissions overlap. <a class="xref" href="#s4-lab">Lab 4A</a> <a class="xref" href="#b-he">B4</a></li>
-    </ul></div></details>
+    <p class="setup">In the Cooja lab, A and C are 70 units apart with B in the middle; UDGM transmission range is 50 and interference range is 100. No collisions appear. Why?</p>
+    <details class="q"><summary>Answer</summary><div class="a"><p>A and C are inside each other’s 100-unit interference range, so each still senses the other’s energy and defers; they are not hidden. Move them farther apart (or reduce the interference range) while keeping both within 50 of B. <a class="xref" href="#s4-lab">Lab 4A</a></p></div></details>
   </div>
 
   <div class="scenario">
     <h4><span class="sc">Scenario 20</span>A wheat field that partitioned itself</h4>
-    <p class="setup">Ground sensors in a wheat field were spaced for links that worked at sowing. By harvest, the ground mesh has partitioned, although every node still reaches the collection drone overhead.</p>
-    <p class="ask"><b>Q:</b> Explain the partition and the hidden-terminal effect, and propose a deployment fix.</p>
-    <details class="q"><summary>Model answer</summary><div class="a"><ul>
-      <li><b>(iii) Numbers</b> — the measured path-loss exponent rose from 1.85 (sowing) to 5.93 (mature wheat); range at −75 dBm fell from 48 m to 8 m.</li>
-      <li><b>(i) Diagnosis</b> — ground-to-ground links died while ground-to-air paths stayed clear: nodes can no longer sense each other but all reach the drone, which is the hidden-terminal geometry.</li>
-      <li><b>(iv) Trade-off</b> — denser deployment or taller masts cost money and machinery clearance.</li>
-      <li><b>(v) Fix</b> — plan spacing with the harvest-stage exponent; mount antennas above the mature canopy; have the drone poll nodes (TDMA) so ground nodes never contend. <a class="xref" href="#s4-8">§4.8</a></li>
-    </ul></div></details>
+    <p class="setup">Ground sensors spaced at sowing lose their mesh links by harvest, yet all still reach the collection drone overhead. Explain.</p>
+    <details class="q"><summary>Answer</summary><div class="a"><p>The growing crop raised the ground-level path-loss exponent (1.85 → 5.93; range 48 m → 8 m) while the path to the drone stayed clear. Ground nodes became hidden from each other, so plan spacing for harvest conditions or let the drone poll each node. <a class="xref" href="#s4-8">§4.8</a></p></div></details>
   </div>
 </section>
 
